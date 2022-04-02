@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: reduct_java_spring_sdk
+---
+spring:
+  profiles: dev, stage
+
+application:
+  url:
+    "http://127.0.0.1:8383"
+  secret_key:
+    "key"
+  client_name:
+    "name"
+  client_password:
+    "pwd"
+
+---
+
+spring:
+  profiles: prod
+
+application:
+  url:
+    "http://127.0.0.1:8383"
+  secret_key:
+    "key"
+  client_name:
+    "name"
+  client_password:
+    "pwd"

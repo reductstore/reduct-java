@@ -24,12 +24,14 @@ class ReductServerClientTest {
    private ServerClientProperties serverClientProperties;
    private HttpClient httpClient;
    private ReductServerClient reductServerClient;
+   private String accessToken;
 
    @BeforeEach
    public void setup() {
+      accessToken = "testToken";
       httpClient = mock(HttpClient.class);
       serverClientProperties = new ServerClientProperties(false, "localhost", 8383);
-      reductServerClient = new ReductServerClient(serverClientProperties, httpClient);
+      reductServerClient = new ReductServerClient(serverClientProperties, httpClient, accessToken);
    }
 
    @Test
@@ -37,6 +39,7 @@ class ReductServerClientTest {
       HttpRequest httpRequest = HttpRequest.newBuilder()
               .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
+              .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
       HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
       doReturn(200).when(mockHttpResponse).statusCode();
@@ -53,6 +56,7 @@ class ReductServerClientTest {
       HttpRequest httpRequest = HttpRequest.newBuilder()
               .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
+              .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
       HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
       doReturn(503).when(mockHttpResponse).statusCode();
@@ -69,6 +73,7 @@ class ReductServerClientTest {
       HttpRequest httpRequest = HttpRequest.newBuilder()
               .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
+              .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
       HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
       doReturn(200).when(mockHttpResponse).statusCode();
@@ -84,6 +89,7 @@ class ReductServerClientTest {
       HttpRequest httpRequest = HttpRequest.newBuilder()
               .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
+              .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
       doThrow(IOException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
       ReductException result = assertThrows(ReductException.class, () -> reductServerClient.getServerInfo());
@@ -96,11 +102,52 @@ class ReductServerClientTest {
       HttpRequest httpRequest = HttpRequest.newBuilder()
               .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
+              .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
       doThrow(InterruptedException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
       ReductException result = assertThrows(ReductException.class, () -> reductServerClient.getServerInfo());
 
       assertEquals("Thread has been interrupted while processing the request", result.getMessage());
+   }
+
+   @Test
+   void getServerInfo_invalidToken_throwException() throws IOException, InterruptedException {
+      HttpRequest httpRequest = HttpRequest.newBuilder()
+              .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
+              .GET()
+              .header("Authorization", "Bearer %s".formatted(accessToken))
+              .build();
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      doReturn(401).when(mockHttpResponse).statusCode();
+      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
+      ReductException result = assertThrows(ReductException.class, () -> reductServerClient.getServerInfo());
+
+      assertEquals("The access token is invalid.", result.getMessage());
+      assertEquals(401, result.getStatusCode());
+   }
+
+   @Test
+   void constructClient_accessTokenIsNull_throwException() {
+      IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+              () -> new ReductServerClient(serverClientProperties, httpClient, null));
+
+      assertEquals("Access token cannot be null or empty.", result.getMessage());
+   }
+
+   @Test
+   void constructClient_accessTokenIsEmpty_throwException() {
+      IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+              () -> new ReductServerClient(serverClientProperties, httpClient, ""));
+
+      assertEquals("Access token cannot be null or empty.", result.getMessage());
+   }
+
+   @Test
+   void constructClient_serverPropertiesIsNull_throwException() {
+      IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+              () -> new ReductServerClient(null, httpClient, accessToken));
+
+      assertEquals("ServerClientProperties cannot be null.", result.getMessage());
    }
 
    private ServerInfo sampleServerInfo() throws JsonProcessingException {

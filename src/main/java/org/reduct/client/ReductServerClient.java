@@ -18,14 +18,28 @@ public class ReductServerClient implements ServerClient {
    private final ServerClientProperties serverProperties;
    private final HttpClient httpClient;
    private final ObjectMapper objectMapper;
+   private final String token;
 
-   public ReductServerClient(ServerClientProperties serverClientProperties) {
-      this(serverClientProperties, HttpClient.newHttpClient());
+   /**
+    * Constructs a new ReductServerClient with the given properties and the given access token.
+    *
+    * @param serverClientProperties The properties, such as host and port
+    * @param accessToken            The access token to use for authentication
+    */
+   public ReductServerClient(ServerClientProperties serverClientProperties, String accessToken) {
+      this(serverClientProperties, HttpClient.newHttpClient(), accessToken);
    }
 
-   ReductServerClient(ServerClientProperties serverClientProperties, HttpClient client) {
+   ReductServerClient(ServerClientProperties serverClientProperties, HttpClient client, String accessToken) {
+      if (serverClientProperties == null) {
+         throw new IllegalArgumentException("ServerClientProperties cannot be null.");
+      }
+      if (accessToken == null || accessToken.isBlank()) {
+         throw new IllegalArgumentException("Access token cannot be null or empty.");
+      }
       serverProperties = serverClientProperties;
       httpClient = client;
+      token = accessToken;
       objectMapper = new ObjectMapper();
    }
 
@@ -35,10 +49,13 @@ public class ReductServerClient implements ServerClient {
       HttpRequest getRequest = HttpRequest.newBuilder()
               .GET()
               .uri(serverInfoUri)
+              .header("Authorization", "Bearer %s".formatted(token))
               .build();
       HttpResponse<String> response = sendRequest(getRequest);
       if (response.statusCode() == 200) {
          return parseServerInfo(response.body());
+      } else if (response.statusCode() == 401) {
+         throw new ReductException("The access token is invalid.", response.statusCode());
       } else {
          throw new ReductException("The server returned an unexpected response. Please try again later.",
                  response.statusCode());

@@ -1,2 +1,2 @@
 # reduct-java
-Reudct Storage Client SDK for Java
+Reduct Storage Client SDK for Java

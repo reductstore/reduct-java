@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.reduct.client.config.ServerClientProperties;
+import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.ServerInfoConstants;
 import org.reduct.common.ServerURL;
 import org.reduct.common.exception.ReductException;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 
 class ReductServerClientTest {
 
-   private ServerClientProperties serverClientProperties;
+   private ServerProperties serverProperties;
    private HttpClient httpClient;
    private ReductServerClient reductServerClient;
    private String accessToken;
@@ -30,14 +30,14 @@ class ReductServerClientTest {
    public void setup() {
       accessToken = "testToken";
       httpClient = mock(HttpClient.class);
-      serverClientProperties = new ServerClientProperties(false, "localhost", 8383);
-      reductServerClient = new ReductServerClient(serverClientProperties, httpClient, accessToken);
+      serverProperties = new ServerProperties(false, "localhost", 8383);
+      reductServerClient = new ReductServerClient(serverProperties, httpClient, accessToken);
    }
 
    @Test
    void getServerInfo_validDetails_returnServerInfo() throws IOException, InterruptedException {
       HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
               .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
@@ -54,7 +54,7 @@ class ReductServerClientTest {
    @Test
    void getServerInfo_serverUnavailable_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
               .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
@@ -71,7 +71,7 @@ class ReductServerClientTest {
    @Test
    void getServerInfo_serverReturnsMalformedJson_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
               .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
@@ -87,7 +87,7 @@ class ReductServerClientTest {
    @Test
    void getServerInfo_ioExceptionOccurs_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
               .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
@@ -100,7 +100,7 @@ class ReductServerClientTest {
    @Test
    void getServerInfo_threadInterrupted_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
               .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
@@ -113,7 +113,7 @@ class ReductServerClientTest {
    @Test
    void getServerInfo_invalidToken_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(URI.create("%s/%s".formatted(serverClientProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
               .GET()
               .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
@@ -129,7 +129,7 @@ class ReductServerClientTest {
    @Test
    void constructClient_accessTokenIsNull_throwException() {
       IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
-              () -> new ReductServerClient(serverClientProperties, httpClient, null));
+              () -> new ReductServerClient(serverProperties, httpClient, null));
 
       assertEquals("Access token cannot be null or empty.", result.getMessage());
    }
@@ -137,7 +137,7 @@ class ReductServerClientTest {
    @Test
    void constructClient_accessTokenIsEmpty_throwException() {
       IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
-              () -> new ReductServerClient(serverClientProperties, httpClient, ""));
+              () -> new ReductServerClient(serverProperties, httpClient, ""));
 
       assertEquals("Access token cannot be null or empty.", result.getMessage());
    }
@@ -147,7 +147,7 @@ class ReductServerClientTest {
       IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
               () -> new ReductServerClient(null, httpClient, accessToken));
 
-      assertEquals("ServerClientProperties cannot be null.", result.getMessage());
+      assertEquals("ServerProperties cannot be null.", result.getMessage());
    }
 
    private ServerInfo sampleServerInfo() throws JsonProcessingException {

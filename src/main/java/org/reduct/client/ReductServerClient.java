@@ -2,7 +2,7 @@ package org.reduct.client;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.reduct.client.config.ServerClientProperties;
+import org.reduct.client.config.ServerProperties;
 import org.reduct.common.ServerURL;
 import org.reduct.common.exception.ReductException;
 import org.reduct.model.server.ServerInfo;
@@ -15,7 +15,7 @@ import java.net.http.HttpResponse;
 
 public class ReductServerClient implements ServerClient {
 
-   private final ServerClientProperties serverProperties;
+   private final ServerProperties serverProperties;
    private final HttpClient httpClient;
    private final ObjectMapper objectMapper;
    private final String token;
@@ -26,13 +26,13 @@ public class ReductServerClient implements ServerClient {
     * @param serverClientProperties The properties, such as host and port
     * @param accessToken            The access token to use for authentication
     */
-   public ReductServerClient(ServerClientProperties serverClientProperties, String accessToken) {
+   public ReductServerClient(ServerProperties serverClientProperties, String accessToken) {
       this(serverClientProperties, HttpClient.newHttpClient(), accessToken);
    }
 
-   ReductServerClient(ServerClientProperties serverClientProperties, HttpClient client, String accessToken) {
+   ReductServerClient(ServerProperties serverClientProperties, HttpClient client, String accessToken) {
       if (serverClientProperties == null) {
-         throw new IllegalArgumentException("ServerClientProperties cannot be null.");
+         throw new IllegalArgumentException("ServerProperties cannot be null.");
       }
       if (accessToken == null || accessToken.isBlank()) {
          throw new IllegalArgumentException("Access token cannot be null or empty.");

@@ -1,6 +1,6 @@
 package org.reduct.client.config;
 
-public record ServerClientProperties(boolean isSsl, String host, int port) {
+public record ServerProperties(boolean isSsl, String host, int port) {
 
    /**
     * @return The base url for the server

@@ -19,10 +19,4 @@ public class ReductException extends RuntimeException {
       super(message);
       this.statusCode = statusCode;
    }
-
-   public ReductException(String message, Throwable cause, int statusCode) {
-      super(message, cause);
-      this.statusCode = statusCode;
-
-   }
 }

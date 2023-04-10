@@ -36,17 +36,19 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       String createTokenBody = serializeCreateTokenBody(permissions);
       HttpRequest createTokenRequest = constructCreateTokenRequest(createTokenUri, createTokenBody);
       HttpResponse<String> response = sendRequest(createTokenRequest);
-      if (response.statusCode() == 200) {
-         return parseAccessToken(response.body());
-      } else if (response.statusCode() == 401) {
-         throw new ReductException("The access token is invalid.", response.statusCode());
-      } else if (response.statusCode() == 403) {
-         throw new ReductException("The access token does not have the required permissions.",
+      return handleResponse(response);
+   }
+
+   private AccessToken handleResponse(HttpResponse<String> response) {
+      return switch (response.statusCode()) {
+         case 200 -> parseAccessToken(response.body());
+         case 401 -> throw new ReductException("The access token is invalid.", response.statusCode());
+         case 403 -> throw new ReductException("The access token does not have the required permissions.",
                  response.statusCode());
-      } else {
-         throw new ReductException("The server returned an unexpected response. Please try again later.",
+         case 409 -> throw new ReductException("A token already exists with this name.", response.statusCode());
+         default -> throw new ReductException("The server returned an unexpected response. Please try again later.",
                  response.statusCode());
-      }
+      };
    }
 
    private HttpResponse<String> sendRequest(HttpRequest createTokenRequest) {

@@ -84,6 +84,21 @@ class ReductTokenClientTest {
    }
 
    @Test
+   void createToken_tokenAlreadyExists_throwException() throws IOException, InterruptedException {
+      HttpRequest httpRequest = buildCreateTokenRequest();
+      HttpResponse<String> httpResponse = mock(HttpResponse.class);
+      doReturn(409).when(httpResponse).statusCode();
+      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+      ReductException reductException = assertThrows(ReductException.class,
+              () -> reductTokenClient.createToken(TOKEN_NAME,
+                      TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
+
+      assertEquals("A token already exists with this name.", reductException.getMessage());
+      assertEquals(409, reductException.getStatusCode());
+   }
+
+   @Test
    void constructClient_serverPropertiesNull_throwException() {
       assertThrows(IllegalArgumentException.class,
               () -> new ReductTokenClient(null, httpClient, accessToken));

@@ -14,22 +14,14 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class ReductTokenClient implements TokenClient {
-
-   private final ServerProperties properties;
-   private final HttpClient httpClient;
-   private final ObjectMapper objectMapper;
-   private final String token;
+public class ReductTokenClient extends ReductClient implements TokenClient {
 
    public ReductTokenClient(ServerProperties serverProperties, String accessToken) {
       this(serverProperties, HttpClient.newHttpClient(), accessToken);
    }
 
    ReductTokenClient(ServerProperties serverProperties, HttpClient client, String accessToken) {
-      properties = serverProperties;
-      httpClient = client;
-      token = accessToken;
-      objectMapper = new ObjectMapper();
+      super(serverProperties, client, new ObjectMapper(), accessToken);
    }
 
    @Override
@@ -72,7 +64,7 @@ public class ReductTokenClient implements TokenClient {
 
    private URI constructCreateTokenUri(String tokenName) {
       String createTokenPath = TokenURL.CREATE_TOKEN.getUrl().formatted(tokenName);
-      return URI.create("%s/%s".formatted(properties.getBaseUrl(), createTokenPath));
+      return URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath));
    }
 
    private String serializeCreateTokenBody(TokenPermissions permissions) {

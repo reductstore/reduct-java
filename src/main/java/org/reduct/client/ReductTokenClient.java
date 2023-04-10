@@ -46,6 +46,7 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
          case 403 -> throw new ReductException("The access token does not have the required permissions.",
                  response.statusCode());
          case 409 -> throw new ReductException("A token already exists with this name.", response.statusCode());
+         case 422 -> throw new ReductException("One of the bucket names provided does not exist on the server.", response.statusCode());
          default -> throw new ReductException("The server returned an unexpected response. Please try again later.",
                  response.statusCode());
       };

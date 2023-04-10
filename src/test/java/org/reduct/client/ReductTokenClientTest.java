@@ -99,6 +99,22 @@ class ReductTokenClientTest {
    }
 
    @Test
+   void createToken_bucketDoesNotExist_throwException() throws IOException, InterruptedException {
+      HttpRequest httpRequest = buildCreateTokenRequest();
+      HttpResponse<String> httpResponse = mock(HttpResponse.class);
+      doReturn(422).when(httpResponse).statusCode();
+      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+      ReductException reductException = assertThrows(ReductException.class,
+              () -> reductTokenClient.createToken(TOKEN_NAME,
+                      TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
+
+      assertEquals("One of the bucket names provided does not exist on the server.",
+              reductException.getMessage());
+      assertEquals(422, reductException.getStatusCode());
+   }
+
+   @Test
    void constructClient_serverPropertiesNull_throwException() {
       assertThrows(IllegalArgumentException.class,
               () -> new ReductTokenClient(null, httpClient, accessToken));

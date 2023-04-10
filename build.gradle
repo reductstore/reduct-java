@@ -1,0 +1,32 @@
+plugins {
+    id 'java-library'
+}
+
+version = '0.0.1'
+group = 'org.reduct'
+archivesBaseName = 'reduct-java'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
+    implementation 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
+}
+
+jar {
+    archiveFileName = "${project.buildDir}/libs/${project.group}:${archivesBaseName}:${version}.jar"
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

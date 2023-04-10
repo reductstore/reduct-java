@@ -40,13 +40,7 @@ class ReductTokenClientTest {
 
    @Test
    void createToken_validDetails_returnToken() throws IOException, InterruptedException {
-      String createTokenPath = TokenURL.CREATE_TOKEN.getUrl().formatted(TOKEN_NAME);
-      URI createTokenUri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath));
-      HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(createTokenUri)
-              .POST(HttpRequest.BodyPublishers.ofString(TokenConstants.CREATE_TOKEN_REQUEST_BODY))
-              .header("Authorization", "Bearer %s".formatted(accessToken))
-              .build();
+      HttpRequest httpRequest = buildCreateTokenRequest();
       HttpResponse<String> httpResponse = mock(HttpResponse.class);
       doReturn(200).when(httpResponse).statusCode();
       doReturn(TokenConstants.CREATE_TOKEN_SUCCESSFUL_RESPONSE).when(httpResponse).body();
@@ -61,13 +55,7 @@ class ReductTokenClientTest {
 
    @Test
    void createToken_invalidTokenProvided_throwException() throws IOException, InterruptedException {
-      String createTokenPath = TokenURL.CREATE_TOKEN.getUrl().formatted(TOKEN_NAME);
-      URI createTokenUri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath));
-      HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(createTokenUri)
-              .POST(HttpRequest.BodyPublishers.ofString(TokenConstants.CREATE_TOKEN_REQUEST_BODY))
-              .header("Authorization", "Bearer %s".formatted(accessToken))
-              .build();
+      HttpRequest httpRequest = buildCreateTokenRequest();
       HttpResponse<String> httpResponse = mock(HttpResponse.class);
       doReturn(401).when(httpResponse).statusCode();
       doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
@@ -78,5 +66,30 @@ class ReductTokenClientTest {
 
       assertEquals("The access token is invalid.", reductException.getMessage());
       assertEquals(401, reductException.getStatusCode());
+   }
+
+   @Test
+   void createToken_tokenWithoutPrivilegesToCreateToken_throwException() throws IOException, InterruptedException {
+      HttpRequest httpRequest = buildCreateTokenRequest();
+      HttpResponse<String> httpResponse = mock(HttpResponse.class);
+      doReturn(403).when(httpResponse).statusCode();
+      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+      ReductException reductException = assertThrows(ReductException.class,
+              () -> reductTokenClient.createToken(TOKEN_NAME,
+                      TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
+
+      assertEquals("The access token does not have the required permissions.", reductException.getMessage());
+      assertEquals(403, reductException.getStatusCode());
+   }
+
+   private HttpRequest buildCreateTokenRequest() {
+      String createTokenPath = TokenURL.CREATE_TOKEN.getUrl().formatted(TOKEN_NAME);
+      URI createTokenUri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath));
+      return HttpRequest.newBuilder()
+              .uri(createTokenUri)
+              .POST(HttpRequest.BodyPublishers.ofString(TokenConstants.CREATE_TOKEN_REQUEST_BODY))
+              .header("Authorization", "Bearer %s".formatted(accessToken))
+              .build();
    }
 }

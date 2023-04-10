@@ -42,6 +42,9 @@ public class ReductTokenClient implements TokenClient {
          return parseAccessToken(response.body());
       } else if (response.statusCode() == 401) {
          throw new ReductException("The access token is invalid.", response.statusCode());
+      } else if (response.statusCode() == 403) {
+         throw new ReductException("The access token does not have the required permissions.",
+                 response.statusCode());
       } else {
          throw new ReductException("The server returned an unexpected response. Please try again later.",
                  response.statusCode());

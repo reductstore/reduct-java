@@ -16,6 +16,12 @@ import java.net.http.HttpResponse;
 
 public class ReductTokenClient extends ReductClient implements TokenClient {
 
+   /**
+    * Constructs a new ReductTokenClient with the given properties and the given access token.
+    *
+    * @param serverProperties The properties, such as host and port
+    * @param accessToken      The access token to use for authentication
+    */
    public ReductTokenClient(ServerProperties serverProperties, String accessToken) {
       this(serverProperties, HttpClient.newHttpClient(), accessToken);
    }

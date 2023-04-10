@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.TokenConstants;
 import org.reduct.common.TokenURL;
+import org.reduct.common.exception.ReductException;
 import org.reduct.model.token.AccessToken;
 import org.reduct.model.token.TokenPermissions;
 
@@ -16,6 +17,7 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -55,5 +57,26 @@ class ReductTokenClientTest {
 
       assertEquals(TokenConstants.EXPECTED_TOKEN_VALUE, token.value());
       assertEquals(TokenConstants.EXPECTED_CREATION_DATE, token.createdAt());
+   }
+
+   @Test
+   void createToken_invalidTokenProvided_throwException() throws IOException, InterruptedException {
+      String createTokenPath = TokenURL.CREATE_TOKEN.getUrl().formatted(TOKEN_NAME);
+      URI createTokenUri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath));
+      HttpRequest httpRequest = HttpRequest.newBuilder()
+              .uri(createTokenUri)
+              .POST(HttpRequest.BodyPublishers.ofString(TokenConstants.CREATE_TOKEN_REQUEST_BODY))
+              .header("Authorization", "Bearer %s".formatted(accessToken))
+              .build();
+      HttpResponse<String> httpResponse = mock(HttpResponse.class);
+      doReturn(401).when(httpResponse).statusCode();
+      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+      ReductException reductException = assertThrows(ReductException.class,
+              () -> reductTokenClient.createToken(TOKEN_NAME,
+              TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
+
+      assertEquals("The access token is invalid.", reductException.getMessage());
+      assertEquals(401, reductException.getStatusCode());
    }
 }

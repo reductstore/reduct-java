@@ -95,7 +95,7 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       try {
          return objectMapper.readValue(body, AccessToken.class);
       } catch (JsonProcessingException e) {
-         throw new ReductException("Failed to parse the access token.", e);
+         throw new ReductException("The server returned a malformed response.", e);
       }
    }
 }

@@ -32,6 +32,12 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
 
    @Override
    public AccessToken createToken(String tokenName, TokenPermissions permissions) throws ReductException {
+      if (tokenName == null || tokenName.isBlank()) {
+         throw new IllegalArgumentException("Token name must not be null or blank");
+      }
+      if (permissions == null) {
+         throw new IllegalArgumentException("Permissions must not be null");
+      }
       URI createTokenUri = constructCreateTokenUri(tokenName);
       String createTokenBody = serializeCreateTokenBody(permissions);
       HttpRequest createTokenRequest = constructCreateTokenRequest(createTokenUri, createTokenBody);
@@ -46,7 +52,8 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
          case 403 -> throw new ReductException("The access token does not have the required permissions.",
                  response.statusCode());
          case 409 -> throw new ReductException("A token already exists with this name.", response.statusCode());
-         case 422 -> throw new ReductException("One of the bucket names provided does not exist on the server.", response.statusCode());
+         case 422 -> throw new ReductException("One of the bucket names provided does not exist on the server.",
+                 response.statusCode());
          default -> throw new ReductException("The server returned an unexpected response. Please try again later.",
                  response.statusCode());
       };

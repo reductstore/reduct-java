@@ -62,7 +62,7 @@ class ReductTokenClientTest {
 
       ReductException reductException = assertThrows(ReductException.class,
               () -> reductTokenClient.createToken(TOKEN_NAME,
-              TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
+                      TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
 
       assertEquals("The access token is invalid.", reductException.getMessage());
       assertEquals(401, reductException.getStatusCode());
@@ -112,6 +112,23 @@ class ReductTokenClientTest {
       assertEquals("One of the bucket names provided does not exist on the server.",
               reductException.getMessage());
       assertEquals(422, reductException.getStatusCode());
+   }
+
+   @Test
+   void createToken_tokenNameIsNull_throwException() {
+      assertThrows(IllegalArgumentException.class, () -> reductTokenClient.createToken(null,
+              TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
+   }
+
+   @Test
+   void createToken_tokenNameIsEmpty_throwException() {
+      assertThrows(IllegalArgumentException.class, () -> reductTokenClient.createToken("",
+              TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
+   }
+
+   @Test
+   void createToken_permissionsObjectIsNull_throwException() {
+      assertThrows(IllegalArgumentException.class, () -> reductTokenClient.createToken(TOKEN_NAME, null));
    }
 
    @Test

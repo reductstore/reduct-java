@@ -1,18 +1,16 @@
-package org.reduct.model.server;
+package org.reduct.model.bucket;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import org.reduct.model.bucket.QuotaType;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class DefaultBucketSettings {
+@Builder
+@AllArgsConstructor
+public class BucketSettings {
 
    @JsonProperty("max_block_size")
    private int maxBlockSize;

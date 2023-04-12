@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.reduct.model.bucket.BucketSettings;
 
 @Getter
 @NoArgsConstructor
@@ -13,5 +14,5 @@ import lombok.ToString;
 public class Defaults {
 
    @JsonProperty("bucket")
-   private DefaultBucketSettings bucketSettings;
+   private BucketSettings bucketSettings;
 }

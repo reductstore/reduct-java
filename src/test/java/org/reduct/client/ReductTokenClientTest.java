@@ -189,18 +189,6 @@ class ReductTokenClientTest {
               () -> new ReductTokenClient(null, httpClient, accessToken));
    }
 
-   @Test
-   void constructClient_accessTokenIsNull_throwException() {
-      assertThrows(IllegalArgumentException.class,
-              () -> new ReductTokenClient(serverProperties, httpClient, null));
-   }
-
-   @Test
-   void constructClient_accessTokenIsEmpty_throwException() {
-      assertThrows(IllegalArgumentException.class,
-              () -> new ReductTokenClient(serverProperties, httpClient, ""));
-   }
-
    private HttpRequest buildCreateTokenRequest() {
       String createTokenPath = TokenURL.CREATE_TOKEN.getUrl().formatted(TOKEN_NAME);
       URI createTokenUri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath));

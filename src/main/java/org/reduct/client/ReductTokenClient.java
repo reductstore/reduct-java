@@ -17,6 +17,17 @@ import java.net.http.HttpResponse;
 public class ReductTokenClient extends ReductClient implements TokenClient {
 
    /**
+    * Constructs a new ReductTokenClient with the given properties.
+    * NOTE: Client created without access token will not be able to interact with the server if,
+    * authentication is enabled on the server.
+    *
+    * @param serverProperties The properties, such as host and port
+    */
+   public ReductTokenClient(ServerProperties serverProperties) {
+      this(serverProperties, null);
+   }
+
+   /**
     * Constructs a new ReductTokenClient with the given properties and the given access token.
     *
     * @param serverProperties The properties, such as host and port

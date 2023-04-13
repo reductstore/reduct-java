@@ -51,14 +51,13 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
       HttpResponse<Void> httpResponse = executeHttpRequest(httpRequest);
       if (httpResponse.statusCode() == 200) {
          return bucketName;
-      } else if (httpResponse.statusCode() == 401) {
-         throw new ReductException("The access token is invalid", httpResponse.statusCode());
-      } else if (httpResponse.statusCode() == 403) {
-         throw new ReductException("The access token does not have required permissions", httpResponse.statusCode());
-      } else if (httpResponse.statusCode() == 409) {
-         throw new ReductException("Bucket already exists with this name", httpResponse.statusCode());
-      } else {
-         throw new ReductException("Failed to create bucket", httpResponse.statusCode());
+      }
+      switch (httpResponse.statusCode()) {
+         case 401 -> throw new ReductException("The access token is invalid", httpResponse.statusCode());
+         case 403 -> throw new ReductException("The access token does not have required permissions",
+                 httpResponse.statusCode());
+         case 409 -> throw new ReductException("Bucket already exists with this name", httpResponse.statusCode());
+         default -> throw new ReductException("Failed to create bucket", httpResponse.statusCode());
       }
    }
 

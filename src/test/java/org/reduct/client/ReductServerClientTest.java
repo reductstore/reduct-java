@@ -127,22 +127,6 @@ class ReductServerClientTest {
    }
 
    @Test
-   void constructClient_accessTokenIsNull_throwException() {
-      IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
-              () -> new ReductServerClient(serverProperties, httpClient, null));
-
-      assertEquals("Access token cannot be null or empty.", result.getMessage());
-   }
-
-   @Test
-   void constructClient_accessTokenIsEmpty_throwException() {
-      IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
-              () -> new ReductServerClient(serverProperties, httpClient, ""));
-
-      assertEquals("Access token cannot be null or empty.", result.getMessage());
-   }
-
-   @Test
    void constructClient_serverPropertiesIsNull_throwException() {
       IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
               () -> new ReductServerClient(null, httpClient, accessToken));

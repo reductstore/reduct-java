@@ -20,9 +20,6 @@ public abstract class ReductClient {
       if (serverProperties == null) {
          throw new IllegalArgumentException("ServerProperties cannot be null.");
       }
-      if (accessToken == null || accessToken.isBlank()) {
-         throw new IllegalArgumentException("Access token cannot be null or empty.");
-      }
       this.serverProperties = serverProperties;
       this.httpClient = httpClient;
       this.objectMapper = objectMapper;

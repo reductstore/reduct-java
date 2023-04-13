@@ -115,4 +115,22 @@ class ReductBucketClientTest {
 
       assertEquals("Thread has been interrupted while processing the request", result.getMessage());
    }
+
+   @Test
+   void createBucket_serverReturnsUnauthorized_throwsException() throws IOException, InterruptedException {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
+      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+      HttpRequest httpRequest = HttpRequest.newBuilder()
+              .uri(uri)
+              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
+              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
+              .build();
+      doReturn(401).when(mockHttpResponse).statusCode();
+      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
+      ReductException result = assertThrows(ReductException.class,
+              () -> bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build()));
+
+      assertEquals("The access token is invalid", result.getMessage());
+      assertEquals(401, result.getStatusCode());
+   }
 }

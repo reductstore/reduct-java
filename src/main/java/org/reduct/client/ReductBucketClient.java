@@ -46,6 +46,9 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
 
    @Override
    public String createBucket(String bucketName, BucketSettings bucketSettings) {
+      if (bucketName == null || bucketName.isBlank()) {
+         throw new IllegalArgumentException("Bucket name cannot be null or empty");
+      }
       String requestBody = serializeSettingsOrEmptyJson(bucketSettings);
       HttpRequest httpRequest = createHttpRequest(bucketName, requestBody);
       HttpResponse<Void> httpResponse = executeHttpRequest(httpRequest);

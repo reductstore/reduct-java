@@ -152,6 +152,20 @@ class ReductBucketClientTest {
       assertEquals(500, result.getStatusCode());
    }
 
+   @Test
+   void createBucket_bucketNameNull_throwsException() {
+      IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+              () -> bucketClient.createBucket(null, BucketSettings.builder().build()));
+      assertEquals("Bucket name cannot be null or empty", result.getMessage());
+   }
+
+   @Test
+   void createBucket_bucketNameEmpty_throwsException() {
+      IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+              () -> bucketClient.createBucket("", BucketSettings.builder().build()));
+      assertEquals("Bucket name cannot be null or empty", result.getMessage());
+   }
+
    private static HttpRequest createHttpRequest(URI uri, String requestBody) {
       return HttpRequest.newBuilder()
               .uri(uri)

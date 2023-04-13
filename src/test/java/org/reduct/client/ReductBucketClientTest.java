@@ -124,6 +124,20 @@ class ReductBucketClientTest {
       assertEquals(403, result.getStatusCode());
    }
 
+   @Test
+   void createBucket_bucketAlreadyExists_throwsException() throws IOException, InterruptedException {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
+      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
+      doReturn(409).when(mockHttpResponse).statusCode();
+      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
+      ReductException result = assertThrows(ReductException.class,
+              () -> bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build()));
+
+      assertEquals("Bucket already exists with this name", result.getMessage());
+      assertEquals(409, result.getStatusCode());
+   }
+
    private static HttpRequest createHttpRequest(URI uri, String requestBody) {
       return HttpRequest.newBuilder()
               .uri(uri)

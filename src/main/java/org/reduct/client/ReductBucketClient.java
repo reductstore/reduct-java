@@ -52,10 +52,14 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
       String requestBody = serializeSettingsOrEmptyJson(bucketSettings);
       HttpRequest httpRequest = createHttpRequest(bucketName, requestBody);
       HttpResponse<Void> httpResponse = executeHttpRequest(httpRequest);
-      if (httpResponse.statusCode() == 200) {
-         return bucketName;
-      }
+      return handleResponse(bucketName, httpResponse);
+   }
+
+   private String handleResponse(String bucketName, HttpResponse<Void> httpResponse) {
       switch (httpResponse.statusCode()) {
+         case 200 -> {
+            return bucketName;
+         }
          case 401 -> throw new ReductException("The access token is invalid", httpResponse.statusCode());
          case 403 -> throw new ReductException("The access token does not have required permissions",
                  httpResponse.statusCode());

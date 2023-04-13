@@ -1,10 +1,20 @@
 package org.reduct.client;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.JacksonFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.reduct.client.config.ServerProperties;
+import org.reduct.common.BucketURL;
+import org.reduct.common.exception.ReductException;
 import org.reduct.model.bucket.BucketSettings;
 
+import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 public class ReductBucketClient extends ReductClient implements BucketClient {
 
@@ -33,10 +43,50 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
 
    ReductBucketClient(ServerProperties serverProperties, HttpClient httpClient, String accessToken) {
       super(serverProperties, httpClient, new ObjectMapper(), accessToken);
+      objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
    }
 
    @Override
-   public void createBucket(String bucketName, BucketSettings bucketSettings) {
+   public String createBucket(String bucketName, BucketSettings bucketSettings) {
+      String requestBody = serializeBucketSettings(bucketSettings);
+      HttpRequest httpRequest = createHttpRequest(bucketName, requestBody);
+      HttpResponse<Void> httpResponse = executeHttpRequest(httpRequest);
+      if (httpResponse.statusCode() == 200) {
+         return bucketName;
+      } else {
+         throw new ReductException("Failed to create bucket", httpResponse.statusCode());
+      }
+   }
 
+   private String serializeBucketSettings(BucketSettings bucketSettings) {
+      try {
+         return objectMapper.writeValueAsString(bucketSettings);
+      } catch (JsonProcessingException e) {
+         throw new ReductException("Failed to serialize bucket settings", e);
+      }
+   }
+
+   private HttpRequest createHttpRequest(String bucketName, String requestBody) {
+      return HttpRequest.newBuilder()
+              .uri(constructCreateBucketUri(bucketName))
+              .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+              .header("Authorization", "Bearer %s".formatted(token))
+              .build();
+   }
+
+   private HttpResponse<Void> executeHttpRequest(HttpRequest httpRequest) {
+      try {
+         return httpClient.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+      } catch (IOException e) {
+         throw new ReductException("An error occurred while sending request to server", e);
+      } catch (InterruptedException e) {
+         Thread.currentThread().interrupt();
+         throw new ReductException("Thread has been interrupted while processing the request", e);
+      }
+   }
+
+   private URI constructCreateBucketUri(String bucketName) {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(bucketName);
+      return URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
    }
 }

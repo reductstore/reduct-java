@@ -2,9 +2,7 @@ package org.reduct.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.util.JacksonFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.common.BucketURL;
 import org.reduct.common.exception.ReductException;
@@ -48,7 +46,7 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
 
    @Override
    public String createBucket(String bucketName, BucketSettings bucketSettings) {
-      String requestBody = serializeBucketSettings(bucketSettings);
+      String requestBody = serializeSettingsOrEmptyJson(bucketSettings);
       HttpRequest httpRequest = createHttpRequest(bucketName, requestBody);
       HttpResponse<Void> httpResponse = executeHttpRequest(httpRequest);
       if (httpResponse.statusCode() == 200) {
@@ -58,7 +56,10 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
       }
    }
 
-   private String serializeBucketSettings(BucketSettings bucketSettings) {
+   private String serializeSettingsOrEmptyJson(BucketSettings bucketSettings) {
+      if (bucketSettings == null) {
+         return "{}";
+      }
       try {
          return objectMapper.writeValueAsString(bucketSettings);
       } catch (JsonProcessingException e) {
@@ -78,7 +79,7 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
       try {
          return httpClient.send(httpRequest, HttpResponse.BodyHandlers.discarding());
       } catch (IOException e) {
-         throw new ReductException("An error occurred while sending request to server", e);
+         throw new ReductException("An error occurred while processing the request", e);
       } catch (InterruptedException e) {
          Thread.currentThread().interrupt();
          throw new ReductException("Thread has been interrupted while processing the request", e);

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.BucketConstants;
 import org.reduct.common.BucketURL;
+import org.reduct.common.exception.ReductException;
 import org.reduct.model.bucket.BucketSettings;
 
 import java.io.IOException;
@@ -14,8 +15,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 class ReductBucketClientTest {
 
@@ -49,5 +50,69 @@ class ReductBucketClientTest {
       String result = bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build());
 
       assertEquals(BUCKET_NAME, result);
+   }
+
+   @Test
+   void createBucket_settingsProvided_bucketCreated() throws IOException, InterruptedException {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
+      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+      HttpRequest httpRequest = HttpRequest.newBuilder()
+              .uri(uri)
+              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
+              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
+              .build();
+      doReturn(200).when(mockHttpResponse).statusCode();
+      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
+      String result = bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build());
+
+      assertEquals(BUCKET_NAME, result);
+   }
+
+   @Test
+   void createBucket_settingsNull_bucketCreated() throws IOException, InterruptedException {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
+      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+      HttpRequest httpRequest = HttpRequest.newBuilder()
+              .uri(uri)
+              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
+              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
+              .build();
+      doReturn(200).when(mockHttpResponse).statusCode();
+      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
+      String result = bucketClient.createBucket(BUCKET_NAME, null);
+
+      assertEquals(BUCKET_NAME, result);
+   }
+
+   @Test
+   void createBucket_ioException_throwsException() throws IOException, InterruptedException {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
+      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+      HttpRequest httpRequest = HttpRequest.newBuilder()
+              .uri(uri)
+              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
+              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
+              .build();
+      doThrow(IOException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
+      ReductException result = assertThrows(ReductException.class,
+              () -> bucketClient.createBucket(BUCKET_NAME, null));
+
+      assertEquals("An error occurred while processing the request", result.getMessage());
+   }
+
+   @Test
+   void createBucket_interruptedException_throwsException() throws IOException, InterruptedException {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
+      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+      HttpRequest httpRequest = HttpRequest.newBuilder()
+              .uri(uri)
+              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
+              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
+              .build();
+      doThrow(InterruptedException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
+      ReductException result = assertThrows(ReductException.class,
+              () -> bucketClient.createBucket(BUCKET_NAME, null));
+
+      assertEquals("Thread has been interrupted while processing the request", result.getMessage());
    }
 }

@@ -13,16 +13,16 @@ import lombok.*;
 public class BucketSettings {
 
    @JsonProperty("max_block_size")
-   private int maxBlockSize;
+   private Integer maxBlockSize;
 
    @JsonProperty("max_block_records")
-   private int maxBlockRecords;
+   private Integer maxBlockRecords;
 
    @JsonProperty("quota_type")
    @JsonFormat(shape = JsonFormat.Shape.STRING)
    private QuotaType quotaType;
 
    @JsonProperty("quota_size")
-   private int quotaSize;
+   private Integer quotaSize;
 
 }

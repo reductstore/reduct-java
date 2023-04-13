@@ -53,6 +53,8 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
          return bucketName;
       } else if (httpResponse.statusCode() == 401) {
          throw new ReductException("The access token is invalid", httpResponse.statusCode());
+      } else if (httpResponse.statusCode() == 403) {
+         throw new ReductException("The access token does not have required permissions", httpResponse.statusCode());
       } else {
          throw new ReductException("Failed to create bucket", httpResponse.statusCode());
       }

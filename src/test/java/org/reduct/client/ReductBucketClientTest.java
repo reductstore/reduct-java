@@ -40,11 +40,7 @@ class ReductBucketClientTest {
    void createBucket_settingsNotProvided_bucketCreated() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(uri)
-              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
-              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.EMPTY_BUCKET_SETTINGS_BODY))
-              .build();
+      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.EMPTY_BUCKET_SETTINGS_BODY);
       doReturn(200).when(mockHttpResponse).statusCode();
       doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       String result = bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build());
@@ -56,11 +52,7 @@ class ReductBucketClientTest {
    void createBucket_settingsProvided_bucketCreated() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(uri)
-              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
-              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
-              .build();
+      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
       doReturn(200).when(mockHttpResponse).statusCode();
       doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       String result = bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build());
@@ -72,11 +64,7 @@ class ReductBucketClientTest {
    void createBucket_settingsNull_bucketCreated() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(uri)
-              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
-              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
-              .build();
+      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
       doReturn(200).when(mockHttpResponse).statusCode();
       doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       String result = bucketClient.createBucket(BUCKET_NAME, null);
@@ -88,11 +76,7 @@ class ReductBucketClientTest {
    void createBucket_ioException_throwsException() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(uri)
-              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
-              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
-              .build();
+      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
       doThrow(IOException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       ReductException result = assertThrows(ReductException.class,
               () -> bucketClient.createBucket(BUCKET_NAME, null));
@@ -104,11 +88,7 @@ class ReductBucketClientTest {
    void createBucket_interruptedException_throwsException() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(uri)
-              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
-              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
-              .build();
+      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
       doThrow(InterruptedException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       ReductException result = assertThrows(ReductException.class,
               () -> bucketClient.createBucket(BUCKET_NAME, null));
@@ -120,11 +100,7 @@ class ReductBucketClientTest {
    void createBucket_serverReturnsUnauthorized_throwsException() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = HttpRequest.newBuilder()
-              .uri(uri)
-              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
-              .POST(HttpRequest.BodyPublishers.ofString(BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY))
-              .build();
+      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
       doReturn(401).when(mockHttpResponse).statusCode();
       doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       ReductException result = assertThrows(ReductException.class,
@@ -132,5 +108,27 @@ class ReductBucketClientTest {
 
       assertEquals("The access token is invalid", result.getMessage());
       assertEquals(401, result.getStatusCode());
+   }
+
+   @Test
+   void createBucket_serverReturnsForbidden_throwsException() throws IOException, InterruptedException {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
+      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
+      doReturn(403).when(mockHttpResponse).statusCode();
+      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
+      ReductException result = assertThrows(ReductException.class,
+              () -> bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build()));
+
+      assertEquals("The access token does not have required permissions", result.getMessage());
+      assertEquals(403, result.getStatusCode());
+   }
+
+   private static HttpRequest createHttpRequest(URI uri, String requestBody) {
+      return HttpRequest.newBuilder()
+              .uri(uri)
+              .header("Authorization", "Bearer %s".formatted(ACCESS_TOKEN))
+              .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+              .build();
    }
 }

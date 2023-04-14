@@ -16,6 +16,8 @@ import java.net.http.HttpResponse;
 
 public class ReductTokenClient extends ReductClient implements TokenClient {
 
+   private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
+
    /**
     * Constructs a new ReductTokenClient with the given properties.
     * NOTE: Client created without access token will not be able to interact with the server if,
@@ -53,21 +55,14 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       String createTokenBody = serializeCreateTokenBody(permissions);
       HttpRequest createTokenRequest = constructCreateTokenRequest(createTokenUri, createTokenBody);
       HttpResponse<String> response = sendRequest(createTokenRequest);
-      return handleResponse(response);
-   }
-
-   private AccessToken handleResponse(HttpResponse<String> response) {
-      return switch (response.statusCode()) {
-         case 200 -> parseAccessToken(response.body());
-         case 401 -> throw new ReductException("The access token is invalid.", response.statusCode());
-         case 403 -> throw new ReductException("The access token does not have the required permissions.",
-                 response.statusCode());
-         case 409 -> throw new ReductException("A token already exists with this name.", response.statusCode());
-         case 422 -> throw new ReductException("One of the bucket names provided does not exist on the server.",
-                 response.statusCode());
-         default -> throw new ReductException("The server returned an unexpected response. Please try again later.",
-                 response.statusCode());
-      };
+      if (response.statusCode() == 200) {
+         return parseAccessToken(response.body());
+      } else {
+         String errorMessage = response.headers()
+                 .firstValue(REDUCT_ERROR_HEADER)
+                 .orElse("Failed to create token");
+         throw new ReductException(errorMessage, response.statusCode());
+      }
    }
 
    private HttpResponse<String> sendRequest(HttpRequest createTokenRequest) {

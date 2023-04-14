@@ -17,7 +17,7 @@ public interface BucketClient {
     * @return The name of the bucket created. Never null.
     * @throws ReductException          If, unable to create the bucket. The instance of the exception holds
     *                                  the error message returned in the x-reduct-error header and the
-    *                                  status code (if available) to indicate the failure.
+    *                                  status code to indicate the failure.
     *                                  Some status codes:
     *                                  401 -> Access token is invalid or was not provided.
     *                                  403 -> Access token does not have required permissions.

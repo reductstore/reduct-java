@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.common.BucketURL;
 import org.reduct.common.exception.ReductException;
+import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.bucket.BucketSettings;
 
 import java.io.IOException;
@@ -71,7 +72,7 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
       try {
          return objectMapper.writeValueAsString(bucketSettings);
       } catch (JsonProcessingException e) {
-         throw new ReductException("Failed to serialize bucket settings", e);
+         throw new ReductSDKException("Failed to serialize bucket settings", e);
       }
    }
 
@@ -87,10 +88,10 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
       try {
          return httpClient.send(httpRequest, HttpResponse.BodyHandlers.discarding());
       } catch (IOException e) {
-         throw new ReductException("An error occurred while processing the request", e);
+         throw new ReductSDKException("An error occurred while processing the request", e);
       } catch (InterruptedException e) {
          Thread.currentThread().interrupt();
-         throw new ReductException("Thread has been interrupted while processing the request", e);
+         throw new ReductSDKException("Thread has been interrupted while processing the request", e);
       }
    }
 

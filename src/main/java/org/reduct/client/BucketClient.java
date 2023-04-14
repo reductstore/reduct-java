@@ -1,6 +1,7 @@
 package org.reduct.client;
 
 import org.reduct.common.exception.ReductException;
+import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.bucket.BucketSettings;
 
 public interface BucketClient {
@@ -24,7 +25,8 @@ public interface BucketClient {
     *                                  409 -> Bucket with this name already exists.
     *                                  422 -> Invalid request.
     *                                  500 -> Internal server error.
+    * @throws ReductSDKException       If, any client side error occur.
     * @throws IllegalArgumentException If, the bucket name is null or empty.
     */
-   String createBucket(String bucketName, BucketSettings bucketSettings) throws ReductException;
+   String createBucket(String bucketName, BucketSettings bucketSettings) throws ReductException, ReductSDKException;
 }

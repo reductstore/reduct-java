@@ -6,6 +6,7 @@ import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.BucketConstants;
 import org.reduct.common.BucketURL;
 import org.reduct.common.exception.ReductException;
+import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.bucket.BucketSettings;
 
 import java.io.IOException;
@@ -81,7 +82,7 @@ class ReductBucketClientTest {
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
       HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
       doThrow(IOException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
-      ReductException result = assertThrows(ReductException.class,
+      ReductSDKException result = assertThrows(ReductSDKException.class,
               () -> bucketClient.createBucket(BUCKET_NAME, null));
 
       assertEquals("An error occurred while processing the request", result.getMessage());
@@ -93,7 +94,7 @@ class ReductBucketClientTest {
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
       HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
       doThrow(InterruptedException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
-      ReductException result = assertThrows(ReductException.class,
+      ReductSDKException result = assertThrows(ReductSDKException.class,
               () -> bucketClient.createBucket(BUCKET_NAME, null));
 
       assertEquals("Thread has been interrupted while processing the request", result.getMessage());

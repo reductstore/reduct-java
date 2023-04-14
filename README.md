@@ -56,6 +56,28 @@ public class Main {
    }
 }
 ```
+### Create a new bucket
+```java
+import org.reduct.client.BucketClient;
+import org.reduct.client.ReductBucketClient;
+import org.reduct.client.config.ServerProperties;
+import org.reduct.model.bucket.BucketSettings;
+import org.reduct.model.bucket.QuotaType;
+
+public class Main {
+   public static void main(String[] args) {
+      ServerProperties serverProperties = new ServerProperties(false, "127.0.0.1", 8383);
+      BucketClient bucketClient = new ReductBucketClient(serverProperties, "<your-api-key>");
+      BucketSettings settings = BucketSettings.builder()
+              .quotaType(QuotaType.NONE)
+              .maxBlockSize(64000)
+              .build();
+      String bucket = bucketClient.createBucket("test-bucket", settings);
+      System.out.println(bucket);
+   }
+}
+```
+
 ## References
 
 * [ReductStore HTTP API](https://docs.reduct.store/http-api)

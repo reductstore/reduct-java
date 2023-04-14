@@ -11,8 +11,10 @@ import org.reduct.model.bucket.BucketSettings;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,6 +24,7 @@ class ReductBucketClientTest {
 
    private static final String BUCKET_NAME = "test-bucket";
    private static final String ACCESS_TOKEN = "test-access-token";
+   private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
 
    private ServerProperties serverProperties;
    private ReductBucketClient bucketClient;
@@ -97,59 +100,23 @@ class ReductBucketClientTest {
    }
 
    @Test
-   void createBucket_serverReturnsUnauthorized_throwsException() throws IOException, InterruptedException {
-      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
-      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
-      doReturn(401).when(mockHttpResponse).statusCode();
-      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
-      ReductException result = assertThrows(ReductException.class,
-              () -> bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build()));
-
-      assertEquals("The access token is invalid", result.getMessage());
-      assertEquals(401, result.getStatusCode());
-   }
-
-   @Test
-   void createBucket_serverReturnsForbidden_throwsException() throws IOException, InterruptedException {
-      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
-      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
-      doReturn(403).when(mockHttpResponse).statusCode();
-      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
-      ReductException result = assertThrows(ReductException.class,
-              () -> bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build()));
-
-      assertEquals("The access token does not have required permissions", result.getMessage());
-      assertEquals(403, result.getStatusCode());
-   }
-
-   @Test
    void createBucket_bucketAlreadyExists_throwsException() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
       HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
+      Optional<String> errorHeader = Optional.of("Bucket 'test-bucket' already exists");
+      HttpHeaders mockHttpHeaders = mock(HttpHeaders.class);
+
+      doReturn(mockHttpHeaders).when(mockHttpResponse).headers();
+      doReturn(errorHeader).when(mockHttpHeaders).firstValue(REDUCT_ERROR_HEADER);
       doReturn(409).when(mockHttpResponse).statusCode();
       doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
+
       ReductException result = assertThrows(ReductException.class,
               () -> bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build()));
 
-      assertEquals("Bucket already exists with this name", result.getMessage());
+      assertEquals("Bucket 'test-bucket' already exists", result.getMessage());
       assertEquals(409, result.getStatusCode());
-   }
-
-   @Test
-   void createBucket_serverReturnsInternalServerError_throwsException() throws IOException, InterruptedException {
-      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
-      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
-      doReturn(500).when(mockHttpResponse).statusCode();
-      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
-      ReductException result = assertThrows(ReductException.class,
-              () -> bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build()));
-
-      assertEquals("Failed to create bucket", result.getMessage());
-      assertEquals(500, result.getStatusCode());
    }
 
    @Test

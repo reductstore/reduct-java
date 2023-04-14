@@ -16,6 +16,8 @@ import java.net.http.HttpResponse;
 
 public class ReductBucketClient extends ReductClient implements BucketClient {
 
+   private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
+
    /**
     * Create a new bucket client with the given server properties.
     * NOTE: Client created without access token will not be able to interact with the server if,
@@ -52,19 +54,13 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
       String requestBody = serializeSettingsOrEmptyJson(bucketSettings);
       HttpRequest httpRequest = createHttpRequest(bucketName, requestBody);
       HttpResponse<Void> httpResponse = executeHttpRequest(httpRequest);
-      return handleResponse(bucketName, httpResponse);
-   }
-
-   private String handleResponse(String bucketName, HttpResponse<Void> httpResponse) {
-      switch (httpResponse.statusCode()) {
-         case 200 -> {
-            return bucketName;
-         }
-         case 401 -> throw new ReductException("The access token is invalid", httpResponse.statusCode());
-         case 403 -> throw new ReductException("The access token does not have required permissions",
-                 httpResponse.statusCode());
-         case 409 -> throw new ReductException("Bucket already exists with this name", httpResponse.statusCode());
-         default -> throw new ReductException("Failed to create bucket", httpResponse.statusCode());
+      if (httpResponse.statusCode() == 200) {
+         return bucketName;
+      } else {
+         String errorMessage = httpResponse.headers()
+                 .firstValue(REDUCT_ERROR_HEADER)
+                 .orElse("Failed to create bucket");
+         throw new ReductException(errorMessage, httpResponse.statusCode());
       }
    }
 

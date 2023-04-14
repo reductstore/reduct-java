@@ -15,14 +15,16 @@ public interface BucketClient {
     *                       All settings are optional, setting which is not provided will be set to
     *                       default value.
     * @return The name of the bucket created. Never null.
-    * @throws ReductException If, unable to create the bucket. The instance of the exception holds the
-    *                         status code (if available) to indicate the failure.
-    *                         Status codes:
-    *                         401 -> Access token is invalid or was not provided.
-    *                         403 -> Access token does not have required permissions.
-    *                         409 -> Bucket with this name already exists.
-    *                         422 -> Invalid request.
-    *                         500 -> Internal server error.
+    * @throws ReductException          If, unable to create the bucket. The instance of the exception holds
+    *                                  the error message returned in the x-reduct-error header and the
+    *                                  status code (if available) to indicate the failure.
+    *                                  Some status codes:
+    *                                  401 -> Access token is invalid or was not provided.
+    *                                  403 -> Access token does not have required permissions.
+    *                                  409 -> Bucket with this name already exists.
+    *                                  422 -> Invalid request.
+    *                                  500 -> Internal server error.
+    * @throws IllegalArgumentException If, the bucket name is null or empty.
     */
    String createBucket(String bucketName, BucketSettings bucketSettings) throws ReductException;
 }

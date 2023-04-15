@@ -6,6 +6,7 @@ import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.TokenConstants;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
+import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.token.AccessToken;
 import org.reduct.model.token.TokenPermissions;
 
@@ -83,7 +84,7 @@ class ReductTokenClientTest {
       doReturn("{{}").when(httpResponse).body();
       doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-      ReductException reductException = assertThrows(ReductException.class,
+      ReductSDKException reductException = assertThrows(ReductSDKException.class,
               () -> reductTokenClient.createToken(TOKEN_NAME,
                       TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
 
@@ -95,7 +96,7 @@ class ReductTokenClientTest {
    void createToken_ioExceptionOccurs_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = buildCreateTokenRequest();
       doThrow(IOException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
-      ReductException result = assertThrows(ReductException.class, () -> reductTokenClient.createToken(TOKEN_NAME,
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductTokenClient.createToken(TOKEN_NAME,
               TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
 
       assertEquals("An error occurred while processing the request", result.getMessage());
@@ -105,7 +106,7 @@ class ReductTokenClientTest {
    void createToken_threadInterrupted_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = buildCreateTokenRequest();
       doThrow(InterruptedException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
-      ReductException result = assertThrows(ReductException.class,
+      ReductSDKException result = assertThrows(ReductSDKException.class,
               () -> reductTokenClient.createToken(TOKEN_NAME,
                       TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
+import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.token.AccessToken;
 import org.reduct.model.token.TokenPermissions;
 
@@ -44,7 +45,8 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
    }
 
    @Override
-   public AccessToken createToken(String tokenName, TokenPermissions permissions) throws ReductException {
+   public AccessToken createToken(String tokenName, TokenPermissions permissions)
+           throws ReductException, ReductSDKException, IllegalArgumentException {
       if (tokenName == null || tokenName.isBlank()) {
          throw new IllegalArgumentException("Token name must not be null or blank");
       }
@@ -69,10 +71,10 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       try {
          return httpClient.send(createTokenRequest, HttpResponse.BodyHandlers.ofString());
       } catch (IOException e) {
-         throw new ReductException("An error occurred while processing the request", e);
+         throw new ReductSDKException("An error occurred while processing the request", e);
       } catch (InterruptedException e) {
          Thread.currentThread().interrupt();
-         throw new ReductException("Thread has been interrupted while processing the request", e);
+         throw new ReductSDKException("Thread has been interrupted while processing the request", e);
       }
    }
 
@@ -93,7 +95,7 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       try {
          return objectMapper.writeValueAsString(permissions);
       } catch (JsonProcessingException e) {
-         throw new ReductException("Failed to serialize the token permissions.", e);
+         throw new ReductSDKException("Failed to serialize the token permissions.", e);
       }
    }
 
@@ -101,7 +103,7 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       try {
          return objectMapper.readValue(body, AccessToken.class);
       } catch (JsonProcessingException e) {
-         throw new ReductException("The server returned a malformed response.", e);
+         throw new ReductSDKException("The server returned a malformed response.", e);
       }
    }
 }

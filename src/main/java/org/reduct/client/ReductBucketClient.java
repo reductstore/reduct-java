@@ -48,7 +48,8 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
    }
 
    @Override
-   public String createBucket(String bucketName, BucketSettings bucketSettings) {
+   public String createBucket(String bucketName, BucketSettings bucketSettings)
+           throws ReductException, ReductSDKException, IllegalArgumentException {
       if (bucketName == null || bucketName.isBlank()) {
          throw new IllegalArgumentException("Bucket name cannot be null or empty");
       }

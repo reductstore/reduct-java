@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
+import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.token.AccessToken;
 import org.reduct.model.token.TokenPermissions;
 
@@ -15,6 +16,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class ReductTokenClient extends ReductClient implements TokenClient {
+
+   private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
 
    /**
     * Constructs a new ReductTokenClient with the given properties.
@@ -42,7 +45,8 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
    }
 
    @Override
-   public AccessToken createToken(String tokenName, TokenPermissions permissions) throws ReductException {
+   public AccessToken createToken(String tokenName, TokenPermissions permissions)
+           throws ReductException, ReductSDKException, IllegalArgumentException {
       if (tokenName == null || tokenName.isBlank()) {
          throw new IllegalArgumentException("Token name must not be null or blank");
       }
@@ -53,31 +57,24 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       String createTokenBody = serializeCreateTokenBody(permissions);
       HttpRequest createTokenRequest = constructCreateTokenRequest(createTokenUri, createTokenBody);
       HttpResponse<String> response = sendRequest(createTokenRequest);
-      return handleResponse(response);
-   }
-
-   private AccessToken handleResponse(HttpResponse<String> response) {
-      return switch (response.statusCode()) {
-         case 200 -> parseAccessToken(response.body());
-         case 401 -> throw new ReductException("The access token is invalid.", response.statusCode());
-         case 403 -> throw new ReductException("The access token does not have the required permissions.",
-                 response.statusCode());
-         case 409 -> throw new ReductException("A token already exists with this name.", response.statusCode());
-         case 422 -> throw new ReductException("One of the bucket names provided does not exist on the server.",
-                 response.statusCode());
-         default -> throw new ReductException("The server returned an unexpected response. Please try again later.",
-                 response.statusCode());
-      };
+      if (response.statusCode() == 200) {
+         return parseAccessToken(response.body());
+      } else {
+         String errorMessage = response.headers()
+                 .firstValue(REDUCT_ERROR_HEADER)
+                 .orElse("Failed to create token");
+         throw new ReductException(errorMessage, response.statusCode());
+      }
    }
 
    private HttpResponse<String> sendRequest(HttpRequest createTokenRequest) {
       try {
          return httpClient.send(createTokenRequest, HttpResponse.BodyHandlers.ofString());
       } catch (IOException e) {
-         throw new ReductException("An error occurred while processing the request", e);
+         throw new ReductSDKException("An error occurred while processing the request", e);
       } catch (InterruptedException e) {
          Thread.currentThread().interrupt();
-         throw new ReductException("Thread has been interrupted while processing the request", e);
+         throw new ReductSDKException("Thread has been interrupted while processing the request", e);
       }
    }
 
@@ -98,7 +95,7 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       try {
          return objectMapper.writeValueAsString(permissions);
       } catch (JsonProcessingException e) {
-         throw new ReductException("Failed to serialize the token permissions.", e);
+         throw new ReductSDKException("Failed to serialize the token permissions.", e);
       }
    }
 
@@ -106,7 +103,7 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       try {
          return objectMapper.readValue(body, AccessToken.class);
       } catch (JsonProcessingException e) {
-         throw new ReductException("The server returned a malformed response.", e);
+         throw new ReductSDKException("The server returned a malformed response.", e);
       }
    }
 }

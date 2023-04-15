@@ -28,5 +28,6 @@ public interface BucketClient {
     * @throws ReductSDKException       If, any client side error occur.
     * @throws IllegalArgumentException If, the bucket name is null or empty.
     */
-   String createBucket(String bucketName, BucketSettings bucketSettings) throws ReductException, ReductSDKException;
+   String createBucket(String bucketName, BucketSettings bucketSettings)
+           throws ReductException, ReductSDKException, IllegalArgumentException;
 }

@@ -6,15 +6,18 @@ import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.TokenConstants;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
+import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.token.AccessToken;
 import org.reduct.model.token.TokenPermissions;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,6 +25,7 @@ import static org.mockito.Mockito.*;
 
 class ReductTokenClientTest {
 
+   private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
    private static final String TOKEN_NAME = "test";
 
    private TokenClient reductTokenClient;
@@ -53,80 +57,23 @@ class ReductTokenClientTest {
    }
 
    @Test
-   void createToken_invalidTokenProvided_throwException() throws IOException, InterruptedException {
-      HttpRequest httpRequest = buildCreateTokenRequest();
-      HttpResponse<String> httpResponse = mock(HttpResponse.class);
-      doReturn(401).when(httpResponse).statusCode();
-      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-      ReductException reductException = assertThrows(ReductException.class,
-              () -> reductTokenClient.createToken(TOKEN_NAME,
-                      TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
-
-      assertEquals("The access token is invalid.", reductException.getMessage());
-      assertEquals(401, reductException.getStatusCode());
-   }
-
-   @Test
-   void createToken_tokenWithoutPrivilegesToCreateToken_throwException() throws IOException, InterruptedException {
-      HttpRequest httpRequest = buildCreateTokenRequest();
-      HttpResponse<String> httpResponse = mock(HttpResponse.class);
-      doReturn(403).when(httpResponse).statusCode();
-      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-      ReductException reductException = assertThrows(ReductException.class,
-              () -> reductTokenClient.createToken(TOKEN_NAME,
-                      TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
-
-      assertEquals("The access token does not have the required permissions.", reductException.getMessage());
-      assertEquals(403, reductException.getStatusCode());
-   }
-
-   @Test
    void createToken_tokenAlreadyExists_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = buildCreateTokenRequest();
-      HttpResponse<String> httpResponse = mock(HttpResponse.class);
-      doReturn(409).when(httpResponse).statusCode();
-      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      Optional<String> errorHeader = Optional.of("Token 'test' already exists");
+      HttpHeaders mockHttpHeaders = mock(HttpHeaders.class);
+
+      doReturn(mockHttpHeaders).when(mockHttpResponse).headers();
+      doReturn(errorHeader).when(mockHttpHeaders).firstValue(REDUCT_ERROR_HEADER);
+      doReturn(409).when(mockHttpResponse).statusCode();
+      doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
       ReductException reductException = assertThrows(ReductException.class,
               () -> reductTokenClient.createToken(TOKEN_NAME,
                       TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
 
-      assertEquals("A token already exists with this name.", reductException.getMessage());
+      assertEquals("Token 'test' already exists", reductException.getMessage());
       assertEquals(409, reductException.getStatusCode());
-   }
-
-   @Test
-   void createToken_bucketDoesNotExist_throwException() throws IOException, InterruptedException {
-      HttpRequest httpRequest = buildCreateTokenRequest();
-      HttpResponse<String> httpResponse = mock(HttpResponse.class);
-      doReturn(422).when(httpResponse).statusCode();
-      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-      ReductException reductException = assertThrows(ReductException.class,
-              () -> reductTokenClient.createToken(TOKEN_NAME,
-                      TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
-
-      assertEquals("One of the bucket names provided does not exist on the server.",
-              reductException.getMessage());
-      assertEquals(422, reductException.getStatusCode());
-   }
-
-   @Test
-   void createToken_serverReturnInternalServerError_throwException() throws IOException, InterruptedException {
-      HttpRequest httpRequest = buildCreateTokenRequest();
-      HttpResponse<String> httpResponse = mock(HttpResponse.class);
-      doReturn(500).when(httpResponse).statusCode();
-      doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-      ReductException reductException = assertThrows(ReductException.class,
-              () -> reductTokenClient.createToken(TOKEN_NAME,
-                      TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
-
-      assertEquals("The server returned an unexpected response. Please try again later.",
-              reductException.getMessage());
-      assertEquals(500, reductException.getStatusCode());
    }
 
    @Test
@@ -137,7 +84,7 @@ class ReductTokenClientTest {
       doReturn("{{}").when(httpResponse).body();
       doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-      ReductException reductException = assertThrows(ReductException.class,
+      ReductSDKException reductException = assertThrows(ReductSDKException.class,
               () -> reductTokenClient.createToken(TOKEN_NAME,
                       TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
 
@@ -149,7 +96,7 @@ class ReductTokenClientTest {
    void createToken_ioExceptionOccurs_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = buildCreateTokenRequest();
       doThrow(IOException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
-      ReductException result = assertThrows(ReductException.class, () -> reductTokenClient.createToken(TOKEN_NAME,
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductTokenClient.createToken(TOKEN_NAME,
               TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
 
       assertEquals("An error occurred while processing the request", result.getMessage());
@@ -159,7 +106,7 @@ class ReductTokenClientTest {
    void createToken_threadInterrupted_throwException() throws IOException, InterruptedException {
       HttpRequest httpRequest = buildCreateTokenRequest();
       doThrow(InterruptedException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
-      ReductException result = assertThrows(ReductException.class,
+      ReductSDKException result = assertThrows(ReductSDKException.class,
               () -> reductTokenClient.createToken(TOKEN_NAME,
                       TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket"))));
 

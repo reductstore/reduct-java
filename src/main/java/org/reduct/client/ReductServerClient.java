@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.common.ServerURL;
 import org.reduct.common.exception.ReductException;
+import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.server.ServerInfo;
 
 import java.io.IOException;
@@ -14,6 +15,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class ReductServerClient extends ReductClient implements ServerClient {
+
+   private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
 
    /**
     * Constructs a new ReductServerClient with the given properties.
@@ -41,21 +44,21 @@ public class ReductServerClient extends ReductClient implements ServerClient {
    }
 
    @Override
-   public ServerInfo getServerInfo() {
+   public ServerInfo getServerInfo() throws ReductException, ReductSDKException {
       URI serverInfoUri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl()));
       HttpRequest getRequest = HttpRequest.newBuilder()
               .GET()
               .uri(serverInfoUri)
               .header("Authorization", "Bearer %s".formatted(token))
               .build();
-      HttpResponse<String> response = sendRequest(getRequest);
-      if (response.statusCode() == 200) {
-         return parseServerInfo(response.body());
-      } else if (response.statusCode() == 401) {
-         throw new ReductException("The access token is invalid.", response.statusCode());
+      HttpResponse<String> httpResponse = sendRequest(getRequest);
+      if (httpResponse.statusCode() == 200) {
+         return parseServerInfo(httpResponse.body());
       } else {
-         throw new ReductException("The server returned an unexpected response. Please try again later.",
-                 response.statusCode());
+         String errorMessage = httpResponse.headers()
+                 .firstValue(REDUCT_ERROR_HEADER)
+                 .orElse("Failed to create bucket");
+         throw new ReductException(errorMessage, httpResponse.statusCode());
       }
    }
 
@@ -63,10 +66,10 @@ public class ReductServerClient extends ReductClient implements ServerClient {
       try {
          return httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString());
       } catch (IOException e) {
-         throw new ReductException("An error occurred while processing the request", e);
+         throw new ReductSDKException("An error occurred while processing the request", e);
       } catch (InterruptedException e) {
          Thread.currentThread().interrupt();
-         throw new ReductException("Thread has been interrupted while processing the request", e);
+         throw new ReductSDKException("Thread has been interrupted while processing the request", e);
       }
    }
 
@@ -74,7 +77,7 @@ public class ReductServerClient extends ReductClient implements ServerClient {
       try {
          return objectMapper.readValue(serverInfo, ServerInfo.class);
       } catch (JacksonException e) {
-         throw new ReductException("The server returned a malformed response.");
+         throw new ReductSDKException("The server returned a malformed response.");
       }
    }
 }

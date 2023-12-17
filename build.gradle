@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'maven-publish'
 }
 
 version = '0.0.1'
@@ -12,6 +13,7 @@ java {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -24,9 +26,17 @@ dependencies {
 }
 
 jar {
-    archiveFileName = "${project.buildDir}/libs/${project.group}:${archivesBaseName}:${version}.jar"
+    archiveFileName = "${project.buildDir}/libs/${project.group}.${archivesBaseName}.${version}.jar"
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
 }

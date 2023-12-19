@@ -2,8 +2,8 @@ package org.reduct.common;
 
 public enum ServerURL {
 
-   SERVER_INFO("api/v1/info");
-
+   SERVER_INFO("api/v1/info"),
+   LIST("api/v1/list");
    private final String url;
 
    ServerURL(String url) {

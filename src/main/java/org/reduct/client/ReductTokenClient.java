@@ -67,17 +67,6 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       }
    }
 
-   private HttpResponse<String> sendRequest(HttpRequest createTokenRequest) {
-      try {
-         return httpClient.send(createTokenRequest, HttpResponse.BodyHandlers.ofString());
-      } catch (IOException e) {
-         throw new ReductSDKException("An error occurred while processing the request", e);
-      } catch (InterruptedException e) {
-         Thread.currentThread().interrupt();
-         throw new ReductSDKException("Thread has been interrupted while processing the request", e);
-      }
-   }
-
    private HttpRequest constructCreateTokenRequest(URI createTokenUri, String createTokenBody) {
       return HttpRequest.newBuilder()
               .uri(createTokenUri)

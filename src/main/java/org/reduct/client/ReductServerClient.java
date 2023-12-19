@@ -9,6 +9,8 @@ import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.bucket.Buckets;
 import org.reduct.model.server.ServerInfo;
+import org.reduct.utils.http.HttpStatus;
+import org.reduct.utils.http.Method;
 
 import java.io.IOException;
 import java.net.URI;
@@ -58,47 +60,39 @@ public class ReductServerClient implements ServerClient {
 
    @Override
    public ServerInfo getServerInfo() throws ReductException, ReductSDKException {
-      URI serverInfoUri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), ServerURL.SERVER_INFO.getUrl()));
-      HttpRequest.Builder builder = HttpRequest.newBuilder()
-              .GET()
-              .uri(serverInfoUri);
-      if(isNotBlank(getToken())) {
-         builder.header("Authorization", "Bearer %s".formatted(getToken()));
-      }
-      try {
-         HttpResponse<String> httpResponse = getHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
-         if (httpResponse.statusCode() == 200) {
-            return parseObject(httpResponse.body(), ServerInfo.class);
-
-         } else {
-            String errorMessage = httpResponse.headers()
-                    .firstValue(REDUCT_ERROR_HEADER)
-                    .orElse("Failed to create bucket");
-            throw new ReductException(errorMessage, httpResponse.statusCode());
-         }
-      }
-      catch (IOException e) {
-         throw new ReductSDKException("An error occurred while processing the request", e);
-      }
-      catch (InterruptedException e) {
-         Thread.currentThread().interrupt();
-         throw new ReductSDKException("Thread has been interrupted while processing the request", e);
-      }
+      HttpResponse<String> httpResponse = sendRequest(ServerURL.SERVER_INFO.getUrl(), Method.GET);
+      return parseObject(httpResponse.body(), ServerInfo.class);
    }
 
    @Override
    public Buckets getList() throws ReductException, ReductSDKException {
-      URI serverInfoUri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), ServerURL.LIST.getUrl()));
+      HttpResponse<String> httpResponse = sendRequest(ServerURL.LIST.getUrl(), Method.GET);
+      return parseObject(httpResponse.body(), Buckets.class);
+   }
+
+   @Override
+   public Boolean isAlive() throws ReductException, ReductSDKException {
+      HttpResponse<String> httpResponse = sendRequest(ServerURL.ALIVE.getUrl(), Method.HEAD);
+      return HttpStatus.OK.getCode().equals(httpResponse.statusCode());
+   }
+
+   private <T> HttpResponse<String> sendRequest(String url, Method method) throws ReductException, ReductSDKException {
+      URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), url));
       HttpRequest.Builder builder = HttpRequest.newBuilder()
-              .GET()
-              .uri(serverInfoUri);
+              .uri(uri);
+      switch (method) {
+         case GET -> builder.GET();
+         case HEAD -> builder.method("HEAD", HttpRequest.BodyPublishers.noBody());
+      }
+
       if(isNotBlank(getToken())) {
          builder.header("Authorization", "Bearer %s".formatted(getToken()));
       }
       try {
          HttpResponse<String> httpResponse = getHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
          if (httpResponse.statusCode() == 200) {
-             return parseObject(httpResponse.body(), Buckets.class);
+            return httpResponse;
+
          } else {
             String errorMessage = httpResponse.headers()
                     .firstValue(REDUCT_ERROR_HEADER)
@@ -114,16 +108,17 @@ public class ReductServerClient implements ServerClient {
          throw new ReductSDKException("Thread has been interrupted while processing the request", e);
       }
    }
-   private <T> T parseObject(String serverInfo, Class<T> tClass) {
+
+   private <T> T parseObject(String jsonBody, Class<T> tClass) {
       try {
-         return objectMapper.readValue(serverInfo, tClass);
+         return objectMapper.readValue(jsonBody, tClass);
       } catch (JacksonException e) {
          throw new ReductSDKException("The server returned a malformed response.");
       }
    }
-   private <T> List<T> parseObjectAsList(String serverInfo, Class<T> tClass) {
+   private <T> List<T> parseObjectAsList(String jsonBody, Class<T> tClass) {
       try {
-         return objectMapper.readValue(serverInfo, objectMapper.getTypeFactory().constructCollectionType(List.class, tClass));
+         return objectMapper.readValue(jsonBody, objectMapper.getTypeFactory().constructCollectionType(List.class, tClass));
       } catch (JacksonException e) {
          throw new ReductSDKException("The server returned a malformed response.");
       }

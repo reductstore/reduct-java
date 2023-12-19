@@ -10,11 +10,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reduct.client.config.ServerProperties;
-import org.reduct.client.util.ServerInfoConstants;
+import org.reduct.client.util.ResponseExamples;
 import org.reduct.common.ServerURL;
 import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
+import org.reduct.model.bucket.Buckets;
 import org.reduct.model.server.ServerInfo;
+import org.reduct.utils.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.URI;
@@ -49,22 +51,21 @@ class ReductServerClientTest {
    @Test
    void getServerInfo_validDetails_returnServerInfo() throws IOException, InterruptedException {
       //Init
-      HttpRequest httpRequest = createHttpRequest();
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.SERVER_INFO);
       HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
       when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenReturn(mockHttpResponse);
       when(mockHttpResponse.statusCode()).thenReturn(200);
-      when(mockHttpResponse.body()).thenReturn(ServerInfoConstants.SUCCESSFUL_SERVER_INFO_RESPONSE);
+      when(mockHttpResponse.body()).thenReturn(ResponseExamples.SUCCESSFUL_SERVER_INFO_RESPONSE);
       //Act
       ServerInfo result = reductServerClient.getServerInfo();
       //Assert
       assertNotNull(result);
       assertEquals(sampleServerInfo(), result);
    }
-
    @Test
    void getServerInfo_serverReturnsMalformedJson_throwException() throws IOException, InterruptedException {
       //Init
-      HttpRequest httpRequest = createHttpRequest();
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.SERVER_INFO);
       HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
       when(mockHttpResponse.statusCode()).thenReturn(200);
       when(mockHttpResponse.body()).thenReturn("{{}");
@@ -74,33 +75,30 @@ class ReductServerClientTest {
       //Assert
       assertEquals("The server returned a malformed response.", result.getMessage());
    }
-
    @Test
    void getServerInfo_ioExceptionOccurs_throwException() throws IOException, InterruptedException {
       //Init
-      HttpRequest httpRequest = createHttpRequest();
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.SERVER_INFO);
       when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenThrow(IOException.class);
       //Act
       ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductServerClient.getServerInfo());
       //Assert
       assertEquals("An error occurred while processing the request", result.getMessage());
    }
-
    @Test
    void getServerInfo_threadInterrupted_throwException() throws IOException, InterruptedException {
       //Init
-      HttpRequest httpRequest = createHttpRequest();
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.SERVER_INFO);
       when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenThrow(InterruptedException.class);
       //Act
       ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductServerClient.getServerInfo());
       //Assert
       assertEquals("Thread has been interrupted while processing the request", result.getMessage());
    }
-
    @Test
    void getServerInfo_invalidToken_throwException() throws IOException, InterruptedException {
       //Init
-      HttpRequest httpRequest = createHttpRequest();
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.SERVER_INFO);
       HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
       Optional<String> errorHeader = Optional.of("Invalid token");
       HttpHeaders mockHttpHeaders = mock(HttpHeaders.class);
@@ -115,16 +113,140 @@ class ReductServerClientTest {
       assertEquals("Invalid token", result.getMessage());
       assertEquals(401, result.getStatusCode());
    }
+   @Test
+   void getList_validDetails_returnServerInfo() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.LIST);
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenReturn(mockHttpResponse);
+      when(mockHttpResponse.statusCode()).thenReturn(200);
+      when(mockHttpResponse.body()).thenReturn(ResponseExamples.SUCCESSFUL_LIST_RESPONSE);
+      //Act
+      Buckets result = reductServerClient.getList();
+      //Assert
+      assertNotNull(result);
+      assertEquals(sampleList(), result);
+   }
+   @Test
+   void getList_serverReturnsMalformedJson_throwException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.LIST);
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      when(mockHttpResponse.statusCode()).thenReturn(200);
+      when(mockHttpResponse.body()).thenReturn("{{}");
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenReturn(mockHttpResponse);
+      //Act
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductServerClient.getList());
+      //Assert
+      assertEquals("The server returned a malformed response.", result.getMessage());
+   }
+   @Test
+   void getList_ioExceptionOccurs_throwException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.LIST);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenThrow(IOException.class);
+      //Act
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductServerClient.getList());
+      //Assert
+      assertEquals("An error occurred while processing the request", result.getMessage());
+   }
+   @Test
+   void getList_threadInterrupted_throwException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.LIST);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenThrow(InterruptedException.class);
+      //Act
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductServerClient.getList());
+      //Assert
+      assertEquals("Thread has been interrupted while processing the request", result.getMessage());
+   }
+   @Test
+   void getList_invalidToken_throwException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpGetRequest(ServerURL.LIST);
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      Optional<String> errorHeader = Optional.of("Invalid token");
+      HttpHeaders mockHttpHeaders = mock(HttpHeaders.class);
 
-   private HttpRequest createHttpRequest() {
-      return HttpRequest.newBuilder()
-              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), ServerURL.SERVER_INFO.getUrl())))
-              .GET()
-              .header("Authorization", "Bearer %s".formatted(accessToken))
-              .build();
+      when(mockHttpResponse.headers()).thenReturn(mockHttpHeaders);
+      when(mockHttpHeaders.firstValue(REDUCT_ERROR_HEADER)).thenReturn(errorHeader);
+      when(mockHttpResponse.statusCode()).thenReturn(401);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenReturn(mockHttpResponse);
+      //Act
+      ReductException result = assertThrows(ReductException.class, () -> reductServerClient.getList());
+      //Assert
+      assertEquals("Invalid token", result.getMessage());
+      assertEquals(401, result.getStatusCode());
+   }
+   @Test
+   void isAlive_validDetails_returnServerInfo() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpHeadRequest(ServerURL.ALIVE);
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      when(mockHttpResponse.statusCode()).thenReturn(HttpStatus.OK.getCode());
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenReturn(mockHttpResponse);
+      when(mockHttpResponse.statusCode()).thenReturn(200);
+      //Act
+      Boolean result = reductServerClient.isAlive();
+      //Assert
+      assertNotNull(result);
+      assertEquals(true, result);
+   }
+   @Test
+   void isAlive_ioExceptionOccurs_throwException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpHeadRequest(ServerURL.ALIVE);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenThrow(IOException.class);
+      //Act
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductServerClient.isAlive());
+      //Assert
+      assertEquals("An error occurred while processing the request", result.getMessage());
+   }
+   @Test
+   void isAlive_threadInterrupted_throwException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpHeadRequest(ServerURL.ALIVE);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenThrow(InterruptedException.class);
+      //Act
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductServerClient.isAlive());
+      //Assert
+      assertEquals("Thread has been interrupted while processing the request", result.getMessage());
+   }
+   @Test
+   void isAlive_invalidToken_throwException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpHeadRequest(ServerURL.ALIVE);
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      Optional<String> errorHeader = Optional.of("Invalid token");
+      HttpHeaders mockHttpHeaders = mock(HttpHeaders.class);
+
+      when(mockHttpResponse.headers()).thenReturn(mockHttpHeaders);
+      when(mockHttpHeaders.firstValue(REDUCT_ERROR_HEADER)).thenReturn(errorHeader);
+      when(mockHttpResponse.statusCode()).thenReturn(401);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenReturn(mockHttpResponse);
+      //Act
+      ReductException result = assertThrows(ReductException.class, () -> reductServerClient.isAlive());
+      //Assert
+      assertEquals("Invalid token", result.getMessage());
+      assertEquals(401, result.getStatusCode());
+   }
+   private HttpRequest createHttpGetRequest(ServerURL url) {
+      return createHttp(url).GET().build();
+   }
+   private HttpRequest createHttpHeadRequest(ServerURL url) {
+      return createHttp(url).method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
    }
 
+   private HttpRequest.Builder createHttp(ServerURL url) {
+      return HttpRequest.newBuilder()
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), url.getUrl())))
+              .header("Authorization", "Bearer %s".formatted(accessToken));
+   }
    private ServerInfo sampleServerInfo() throws JsonProcessingException {
-      return new ObjectMapper().readValue(ServerInfoConstants.SUCCESSFUL_SERVER_INFO_RESPONSE, ServerInfo.class);
+      return new ObjectMapper().readValue(ResponseExamples.SUCCESSFUL_SERVER_INFO_RESPONSE, ServerInfo.class);
+   }
+
+   private Buckets sampleList() throws JsonProcessingException {
+      return new ObjectMapper().readValue(ResponseExamples.SUCCESSFUL_LIST_RESPONSE, Buckets.class);
    }
 }

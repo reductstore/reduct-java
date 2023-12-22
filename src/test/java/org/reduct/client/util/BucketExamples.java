@@ -1,6 +1,6 @@
 package org.reduct.client.util;
 
-public class BucketConstants {
+public class BucketExamples {
 
    public static final String EMPTY_BUCKET_SETTINGS_BODY = "{}";
 

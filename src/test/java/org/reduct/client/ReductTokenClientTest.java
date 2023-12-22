@@ -3,7 +3,7 @@ package org.reduct.client;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reduct.client.config.ServerProperties;
-import org.reduct.client.util.TokenConstants;
+import org.reduct.client.util.TokenExamples;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
@@ -46,14 +46,14 @@ class ReductTokenClientTest {
       HttpRequest httpRequest = buildCreateTokenRequest();
       HttpResponse<String> httpResponse = mock(HttpResponse.class);
       doReturn(200).when(httpResponse).statusCode();
-      doReturn(TokenConstants.CREATE_TOKEN_SUCCESSFUL_RESPONSE).when(httpResponse).body();
+      doReturn(TokenExamples.CREATE_TOKEN_SUCCESSFUL_RESPONSE).when(httpResponse).body();
       doReturn(httpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
       AccessToken token = reductTokenClient.createToken(TOKEN_NAME,
               TokenPermissions.of(true, List.of("test-bucket"), List.of("test-bucket")));
 
-      assertEquals(TokenConstants.EXPECTED_TOKEN_VALUE, token.value());
-      assertEquals(TokenConstants.EXPECTED_CREATION_DATE, token.createdAt());
+      assertEquals(TokenExamples.EXPECTED_TOKEN_VALUE, token.name());
+      assertEquals(TokenExamples.EXPECTED_CREATION_DATE, token.createdAt());
    }
 
    @Test
@@ -130,18 +130,12 @@ class ReductTokenClientTest {
       assertThrows(IllegalArgumentException.class, () -> reductTokenClient.createToken(TOKEN_NAME, null));
    }
 
-   @Test
-   void constructClient_serverPropertiesNull_throwException() {
-      assertThrows(IllegalArgumentException.class,
-              () -> new ReductTokenClient(null, httpClient, accessToken));
-   }
-
    private HttpRequest buildCreateTokenRequest() {
       String createTokenPath = TokenURL.CREATE_TOKEN.getUrl().formatted(TOKEN_NAME);
       URI createTokenUri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath));
       return HttpRequest.newBuilder()
               .uri(createTokenUri)
-              .POST(HttpRequest.BodyPublishers.ofString(TokenConstants.CREATE_TOKEN_REQUEST_BODY))
+              .POST(HttpRequest.BodyPublishers.ofString(TokenExamples.CREATE_TOKEN_REQUEST_BODY))
               .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
    }

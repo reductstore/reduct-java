@@ -2,12 +2,17 @@ package org.reduct.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
+import lombok.Getter;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.token.AccessToken;
+import org.reduct.model.token.AccessTokens;
 import org.reduct.model.token.TokenPermissions;
+import org.reduct.utils.JsonUtils;
+import org.reduct.utils.http.Method;
 
 import java.io.IOException;
 import java.net.URI;
@@ -15,9 +20,18 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import static org.reduct.utils.Strings.isNotBlank;
+
 public class ReductTokenClient extends ReductClient implements TokenClient {
 
    private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
+   @Getter(value = AccessLevel.PACKAGE)
+   protected final ServerProperties serverProperties;
+   @Getter(value = AccessLevel.PACKAGE)
+   protected final HttpClient httpClient;
+   protected final ObjectMapper objectMapper;
+   @Getter(value = AccessLevel.PACKAGE)
+   protected final String token;
 
    /**
     * Constructs a new ReductTokenClient with the given properties.
@@ -41,7 +55,10 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
    }
 
    ReductTokenClient(ServerProperties serverProperties, HttpClient client, String accessToken) {
-      super(serverProperties, client, new ObjectMapper(), accessToken);
+      this.httpClient = client;
+      this.serverProperties = serverProperties;
+      this.objectMapper = new ObjectMapper();
+      this.token = accessToken;
    }
 
    @Override
@@ -58,13 +75,19 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       HttpRequest createTokenRequest = constructCreateTokenRequest(createTokenUri, createTokenBody);
       HttpResponse<String> response = sendRequest(createTokenRequest);
       if (response.statusCode() == 200) {
-         return parseAccessToken(response.body());
+         return JsonUtils.parseObject(response.body(), AccessToken.class);
       } else {
          String errorMessage = response.headers()
                  .firstValue(REDUCT_ERROR_HEADER)
                  .orElse("Failed to create token");
          throw new ReductException(errorMessage, response.statusCode());
       }
+   }
+
+   @Override
+   public AccessTokens getTokens() throws ReductException, ReductSDKException {
+      HttpResponse<String> httpResponse = sendRequest(TokenURL.GET_TOKENS.getUrl(), Method.GET);
+      return JsonUtils.parseObject(httpResponse.body(), AccessTokens.class);
    }
 
    private HttpRequest constructCreateTokenRequest(URI createTokenUri, String createTokenBody) {
@@ -88,11 +111,14 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       }
    }
 
-   private AccessToken parseAccessToken(String body) {
+   HttpResponse<String> sendRequest(HttpRequest getRequest) {
       try {
-         return objectMapper.readValue(body, AccessToken.class);
-      } catch (JsonProcessingException e) {
-         throw new ReductSDKException("The server returned a malformed response.", e);
+         return httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString());
+      } catch (IOException e) {
+         throw new ReductSDKException("An error occurred while processing the request", e);
+      } catch (InterruptedException e) {
+         Thread.currentThread().interrupt();
+         throw new ReductSDKException("Thread has been interrupted while processing the request", e);
       }
    }
 }

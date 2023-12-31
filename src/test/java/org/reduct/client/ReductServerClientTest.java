@@ -179,7 +179,7 @@ class ReductServerClientTest {
       assertEquals(401, result.getStatusCode());
    }
    @Test
-   void isAlive_validDetails_returnServerInfo() throws IOException, InterruptedException {
+   void isAlive_validDetails() throws IOException, InterruptedException {
       //Init
       HttpRequest httpRequest = createHttpHeadRequest(ServerURL.ALIVE);
       HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);

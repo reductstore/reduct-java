@@ -12,4 +12,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ServerClient.serverInfo() method to get server info [PR-3](https://github.com/reductstore/reduct-java/pull/3)
 - ServerClient.getList() method to get a list of the buckets with their stats [PR-16](https://github.com/reductstore/reduct-java/pull/16)
 - ServerClient.isAlive() method to check if the storage engine is working [PR-17](https://github.com/reductstore/reduct-java/pull/17)
-- TokenClient.getTokens() method to get a list of tokens [PR-17](https://github.com/reductstore/reduct-java/pull/19)
+- TokenClient.getTokens() method to get a list of tokens [PR-20](https://github.com/reductstore/reduct-java/pull/20)

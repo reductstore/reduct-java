@@ -3,7 +3,7 @@ package org.reduct.common;
 public enum TokenURL {
 
    CREATE_TOKEN("api/v1/tokens/%s"),
-   GET_TOKENS("/api/v1/tokens");
+   GET_TOKENS("api/v1/tokens");
 
    private final String url;
 

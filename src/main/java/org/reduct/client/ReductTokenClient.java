@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
@@ -12,6 +13,7 @@ import org.reduct.model.token.AccessToken;
 import org.reduct.model.token.AccessTokens;
 import org.reduct.model.token.TokenPermissions;
 import org.reduct.utils.JsonUtils;
+import org.reduct.utils.Strings;
 import org.reduct.utils.http.Method;
 
 import java.io.IOException;
@@ -19,8 +21,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
-import static org.reduct.utils.Strings.isNotBlank;
 
 public class ReductTokenClient extends ReductClient implements TokenClient {
 
@@ -58,6 +58,9 @@ public class ReductTokenClient extends ReductClient implements TokenClient {
       this.httpClient = client;
       this.serverProperties = serverProperties;
       this.objectMapper = new ObjectMapper();
+      if(Strings.isBlank(accessToken)) {
+         throw new IllegalArgumentException("Access token must not be null or empty");
+      }
       this.token = accessToken;
    }
 

@@ -4,11 +4,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.TokenExamples;
+import org.reduct.common.ServerURL;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.token.AccessToken;
+import org.reduct.model.token.AccessTokens;
 import org.reduct.model.token.TokenPermissions;
+import org.reduct.utils.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,8 +22,7 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ReductTokenClientTest {
@@ -130,6 +132,61 @@ class ReductTokenClientTest {
       assertThrows(IllegalArgumentException.class, () -> reductTokenClient.createToken(TOKEN_NAME, null));
    }
 
+   @Test
+   void getTokensValidDetails() throws IOException, InterruptedException {
+      //Init
+      String body = "{\"tokens\": []}";
+      HttpRequest httpRequest = createHttpGetRequest(TokenURL.GET_TOKENS);
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      when(mockHttpResponse.statusCode()).thenReturn(HttpStatus.OK.getCode());
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenReturn(mockHttpResponse);
+      when(mockHttpResponse.statusCode()).thenReturn(200);
+      when(mockHttpResponse.body()).thenReturn(body);
+      //Act
+      AccessTokens tokens = reductTokenClient.getTokens();
+      //Assert
+      assertNotNull(tokens);
+      assertTrue(tokens.tokens().isEmpty());
+   }
+   @Test
+   void getTokensIoExceptionOccursThrowException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpGetRequest(TokenURL.GET_TOKENS);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenThrow(IOException.class);
+      //Act
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductTokenClient.getTokens());
+      //Assert
+      assertEquals("An error occurred while processing the request", result.getMessage());
+   }
+   @Test
+   void getTokensThreadInterruptedThrowException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpGetRequest(TokenURL.GET_TOKENS);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenThrow(InterruptedException.class);
+      //Act
+      ReductSDKException result = assertThrows(ReductSDKException.class, () -> reductTokenClient.getTokens());
+      //Assert
+      assertEquals("Thread has been interrupted while processing the request", result.getMessage());
+   }
+   @Test
+   void getTokensInvalidTokenThrowException() throws IOException, InterruptedException {
+      //Init
+      HttpRequest httpRequest = createHttpGetRequest(TokenURL.GET_TOKENS);
+      HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
+      Optional<String> errorHeader = Optional.of("Invalid token");
+      HttpHeaders mockHttpHeaders = mock(HttpHeaders.class);
+
+      when(mockHttpResponse.headers()).thenReturn(mockHttpHeaders);
+      when(mockHttpHeaders.firstValue(REDUCT_ERROR_HEADER)).thenReturn(errorHeader);
+      when(mockHttpResponse.statusCode()).thenReturn(401);
+      when(httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())).thenReturn(mockHttpResponse);
+      //Act
+      ReductException result = assertThrows(ReductException.class, () -> reductTokenClient.getTokens());
+      //Assert
+      assertEquals("Invalid token", result.getMessage());
+      assertEquals(401, result.getStatusCode());
+   }
+
    private HttpRequest buildCreateTokenRequest() {
       String createTokenPath = TokenURL.CREATE_TOKEN.getUrl().formatted(TOKEN_NAME);
       URI createTokenUri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath));
@@ -138,5 +195,13 @@ class ReductTokenClientTest {
               .POST(HttpRequest.BodyPublishers.ofString(TokenExamples.CREATE_TOKEN_REQUEST_BODY))
               .header("Authorization", "Bearer %s".formatted(accessToken))
               .build();
+   }
+   private HttpRequest createHttpGetRequest(TokenURL url) {
+      return createHttp(url).GET().build();
+   }
+   private HttpRequest.Builder createHttp(TokenURL url) {
+      return HttpRequest.newBuilder()
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), url.getUrl())))
+              .header("Authorization", "Bearer %s".formatted(accessToken));
    }
 }

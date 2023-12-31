@@ -32,7 +32,7 @@ public abstract class ReductClient {
       }
 
       if(isNotBlank(getToken())) {
-         builder.header("Authorization", "Bearer %s".formatted(getToken()));
+         builder.headers("Authorization", "Bearer %s".formatted(getToken()));
       }
       try {
          HttpResponse<String> httpResponse = getHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());

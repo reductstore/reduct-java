@@ -1,6 +1,5 @@
 package org.reduct.client;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reduct.client.config.ServerProperties;
@@ -18,6 +17,10 @@ import java.net.http.HttpResponse;
 public class ReductBucketClient extends ReductClient implements BucketClient {
 
    private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
+   protected final ServerProperties serverProperties;
+   protected final HttpClient httpClient;
+   protected final String token;
+   private final ObjectMapper objectMapper = new ObjectMapper();
 
    /**
     * Create a new bucket client with the given server properties.
@@ -43,8 +46,9 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
    }
 
    ReductBucketClient(ServerProperties serverProperties, HttpClient httpClient, String accessToken) {
-      super(serverProperties, httpClient, new ObjectMapper(), accessToken);
-      objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      this.httpClient = httpClient;
+      this.serverProperties = serverProperties;
+      this.token = accessToken;
    }
 
    @Override
@@ -99,5 +103,20 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
    private URI constructCreateBucketUri(String bucketName) {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(bucketName);
       return URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+   }
+
+   @Override
+   ServerProperties getServerProperties() {
+      return serverProperties;
+   }
+
+   @Override
+   String getToken() {
+      return token;
+   }
+
+   @Override
+   HttpClient getHttpClient() {
+      return httpClient;
    }
 }

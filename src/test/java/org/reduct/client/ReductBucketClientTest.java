@@ -3,7 +3,7 @@ package org.reduct.client;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reduct.client.config.ServerProperties;
-import org.reduct.client.util.BucketConstants;
+import org.reduct.client.util.BucketExamples;
 import org.reduct.common.BucketURL;
 import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
@@ -44,7 +44,7 @@ class ReductBucketClientTest {
    void createBucket_settingsNotProvided_bucketCreated() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.EMPTY_BUCKET_SETTINGS_BODY);
+      HttpRequest httpRequest = createHttpRequest(uri, BucketExamples.EMPTY_BUCKET_SETTINGS_BODY);
       doReturn(200).when(mockHttpResponse).statusCode();
       doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       String result = bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build());
@@ -56,7 +56,7 @@ class ReductBucketClientTest {
    void createBucket_settingsProvided_bucketCreated() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
+      HttpRequest httpRequest = createHttpRequest(uri, BucketExamples.SAMPLE_BUCKET_SETTINGS_BODY);
       doReturn(200).when(mockHttpResponse).statusCode();
       doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       String result = bucketClient.createBucket(BUCKET_NAME, BucketSettings.builder().build());
@@ -68,7 +68,7 @@ class ReductBucketClientTest {
    void createBucket_settingsNull_bucketCreated() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
+      HttpRequest httpRequest = createHttpRequest(uri, BucketExamples.SAMPLE_BUCKET_SETTINGS_BODY);
       doReturn(200).when(mockHttpResponse).statusCode();
       doReturn(mockHttpResponse).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       String result = bucketClient.createBucket(BUCKET_NAME, null);
@@ -80,7 +80,7 @@ class ReductBucketClientTest {
    void createBucket_ioException_throwsException() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
+      HttpRequest httpRequest = createHttpRequest(uri, BucketExamples.SAMPLE_BUCKET_SETTINGS_BODY);
       doThrow(IOException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       ReductSDKException result = assertThrows(ReductSDKException.class,
               () -> bucketClient.createBucket(BUCKET_NAME, null));
@@ -92,7 +92,7 @@ class ReductBucketClientTest {
    void createBucket_interruptedException_throwsException() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
+      HttpRequest httpRequest = createHttpRequest(uri, BucketExamples.SAMPLE_BUCKET_SETTINGS_BODY);
       doThrow(InterruptedException.class).when(httpClient).send(httpRequest, HttpResponse.BodyHandlers.discarding());
       ReductSDKException result = assertThrows(ReductSDKException.class,
               () -> bucketClient.createBucket(BUCKET_NAME, null));
@@ -104,7 +104,7 @@ class ReductBucketClientTest {
    void createBucket_bucketAlreadyExists_throwsException() throws IOException, InterruptedException {
       String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(BUCKET_NAME);
       URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
-      HttpRequest httpRequest = createHttpRequest(uri, BucketConstants.SAMPLE_BUCKET_SETTINGS_BODY);
+      HttpRequest httpRequest = createHttpRequest(uri, BucketExamples.SAMPLE_BUCKET_SETTINGS_BODY);
       Optional<String> errorHeader = Optional.of("Bucket 'test-bucket' already exists");
       HttpHeaders mockHttpHeaders = mock(HttpHeaders.class);
 

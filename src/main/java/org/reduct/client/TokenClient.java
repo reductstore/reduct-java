@@ -3,6 +3,7 @@ package org.reduct.client;
 import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.token.AccessToken;
+import org.reduct.model.token.AccessTokens;
 import org.reduct.model.token.TokenPermissions;
 
 /**
@@ -27,4 +28,10 @@ public interface TokenClient {
     */
    AccessToken createToken(String tokenName, TokenPermissions permissions)
            throws ReductException, ReductSDKException, IllegalArgumentException;
+
+   /**
+    * The method returns a list of tokens with names and creation dates. To use this method, you need an access token with full access.
+    * @return AccessTokens
+    */
+   AccessTokens getTokens() throws ReductException, ReductSDKException;
 }

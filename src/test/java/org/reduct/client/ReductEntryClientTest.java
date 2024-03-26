@@ -1,5 +1,6 @@
 package org.reduct.client;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,10 @@ import org.reduct.model.entry.Entry;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -81,5 +85,45 @@ public class ReductEntryClientTest {
 
         // Assert
         assertEquals(VALIDATION_ERROR_MESSAGE, result.getMessage());
+    }
+
+    @ParameterizedTest(name = "Should throw ReductSDKException with validation error")
+    @CsvSource(value = {
+            "null, null",
+            "null, testEntryName",
+            "testBucketName, null"
+    }, nullValues = "null")
+    public void test3(String bucketName, String entryName) {
+        // Init
+        Bucket bucket = Bucket.builder().name(bucketName).build();
+        Entry<Serializable> entry = Entry.builder().name(entryName).build();
+        // Act
+        ReductSDKException result = assertThrows(ReductSDKException.class, () -> client.getRecord(bucket, entry));
+        // Assert
+        assertEquals(VALIDATION_ERROR_MESSAGE, result.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should return testBodyString")
+    public void test4() throws IOException, InterruptedException {
+        // Init
+        String response = "testBodyString";
+        String entryName = "testEntryName";
+        String bucketName = "testBucketName";
+        Bucket bucket = Bucket.builder().name(bucketName).build();
+        Entry<Serializable> entry = Entry.builder().name(entryName).build();
+        HttpResponse<byte[]> mockHttpResponse = mock(HttpResponse.class);
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(SerializationUtils.serialize(response));
+        when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(Map.of("x-reduct-time", List.of()), (l, r) -> true));
+        when(httpClient.send(
+                argThat(builder -> builder.uri().toString().equals("http://127.0.0.1:8383/api/v1/b/" + bucketName +"/" + entryName) &&
+                                   builder.method().equals("GET")),
+                eq(HttpResponse.BodyHandlers.ofByteArray()))).thenReturn(mockHttpResponse);
+        // Act
+        Entry<String> record = client.getRecord(bucket, entry);
+        // Assert
+        assertEquals(response, record.getBody());
+        assertEquals(entryName, record.getName());
     }
 }

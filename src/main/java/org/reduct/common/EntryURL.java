@@ -1,7 +1,8 @@
 package org.reduct.common;
 
 public enum EntryURL {
-      WRITE_ENTRY("/api/v1/b/%s/%s");
+    WRITE_ENTRY("/api/v1/b/%s/%s"),
+    GET_ENTRY("/api/v1/b/%s/%s");
 
       private final String url;
 

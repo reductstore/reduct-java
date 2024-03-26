@@ -60,12 +60,12 @@ public abstract class ReductClient {
       }
    }
 
-   public <T> T send(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> bodyHandler) {
+   public <T> HttpResponse<T> send(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> bodyHandler) {
       try {
          HttpResponse<T> httpResponse = getHttpClient().send(builder.build(), bodyHandler);
          switch (httpResponse.statusCode()) {
             case 200 -> {
-               return httpResponse.body();
+               return httpResponse;
             }
             case 400 -> throw new ReductException(ERROR_400, httpResponse.statusCode());
             case 401 -> throw new ReductException(ERROR_401, httpResponse.statusCode());

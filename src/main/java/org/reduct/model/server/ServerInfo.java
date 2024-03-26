@@ -1,15 +1,11 @@
 package org.reduct.model.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
-@Getter
+@Data
 @NoArgsConstructor
-@EqualsAndHashCode
-@ToString
+@AllArgsConstructor
 public class ServerInfo {
 
    @JsonProperty("version")
@@ -32,5 +28,8 @@ public class ServerInfo {
 
    @JsonProperty("defaults")
    private Defaults defaults;
+
+   @JsonProperty("license")
+   private String license;
 
 }

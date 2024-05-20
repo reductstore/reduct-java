@@ -18,8 +18,8 @@ import static org.reduct.utils.Strings.isNotBlank;
  */
 public abstract class ReductClient {
    private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
-   abstract ServerProperties getServerProperties();
-   abstract String getToken();
+   public abstract ServerProperties getServerProperties();
+   public abstract String getToken();
    abstract HttpClient getHttpClient();
 
    <T> HttpResponse<String> sendRequest(String url, Method method) throws ReductException, ReductSDKException {

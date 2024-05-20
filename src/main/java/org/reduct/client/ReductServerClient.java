@@ -15,7 +15,7 @@ import org.reduct.utils.http.Method;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 
-@Getter(value = AccessLevel.PACKAGE)
+@Getter
 public class ReductServerClient extends ReductClient implements ServerClient {
 
    protected final ServerProperties serverProperties;

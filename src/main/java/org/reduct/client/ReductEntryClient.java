@@ -23,7 +23,7 @@ import java.util.Objects;
 import static org.reduct.utils.Strings.isNotBlank;
 import static org.reduct.utils.http.Query.TIME_STAMP;
 
-@Getter(value = AccessLevel.PACKAGE)
+@Getter
 public class ReductEntryClient extends ReductClient implements EntryClient {
 
     protected final ServerProperties serverProperties;

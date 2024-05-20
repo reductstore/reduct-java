@@ -25,12 +25,12 @@ import java.net.http.HttpResponse;
 public class ReductTokenClient extends ReductClient implements TokenClient {
 
    private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
-   @Getter(value = AccessLevel.PACKAGE)
+   @Getter
    protected final ServerProperties serverProperties;
-   @Getter(value = AccessLevel.PACKAGE)
+   @Getter
    protected final HttpClient httpClient;
    protected final ObjectMapper objectMapper;
-   @Getter(value = AccessLevel.PACKAGE)
+   @Getter
    protected final String token;
 
    /**

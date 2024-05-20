@@ -2,6 +2,7 @@ package org.reduct.client;
 
 import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
+import org.reduct.model.bucket.Bucket;
 import org.reduct.model.bucket.BucketSettings;
 
 public interface BucketClient {
@@ -30,4 +31,6 @@ public interface BucketClient {
     */
    String createBucket(String bucketName, BucketSettings bucketSettings)
            throws ReductException, ReductSDKException, IllegalArgumentException;
+
+   Bucket getBucket(String bucketName) throws ReductException, ReductSDKException, IllegalArgumentException;
 }

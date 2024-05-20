@@ -6,13 +6,18 @@ import org.reduct.client.config.ServerProperties;
 import org.reduct.common.BucketURL;
 import org.reduct.common.exception.ReductException;
 import org.reduct.common.exception.ReductSDKException;
+import org.reduct.model.bucket.Bucket;
 import org.reduct.model.bucket.BucketSettings;
+import org.reduct.model.token.AccessTokens;
+import org.reduct.utils.JsonUtils;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
+import static org.reduct.utils.Strings.isNotBlank;
 
 public class ReductBucketClient extends ReductClient implements BucketClient {
 
@@ -52,8 +57,7 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
    }
 
    @Override
-   public String createBucket(String bucketName, BucketSettings bucketSettings)
-           throws ReductException, ReductSDKException, IllegalArgumentException {
+   public String createBucket(String bucketName, BucketSettings bucketSettings) throws ReductException, ReductSDKException, IllegalArgumentException {
       if (bucketName == null || bucketName.isBlank()) {
          throw new IllegalArgumentException("Bucket name cannot be null or empty");
       }
@@ -68,6 +72,22 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
                  .orElse("Failed to create bucket");
          throw new ReductException(errorMessage, httpResponse.statusCode());
       }
+   }
+
+   @Override
+   public Bucket getBucket(String bucketName) throws ReductException, ReductSDKException, IllegalArgumentException {
+      if (bucketName == null || bucketName.isBlank()) {
+         throw new IllegalArgumentException("Bucket name cannot be null or empty");
+      }
+      String createBucketPath = BucketURL.GET_BUCKET.getUrl().formatted(bucketName);
+      HttpRequest.Builder builder = HttpRequest.newBuilder()
+              .uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath)))
+              .GET();
+      if(isNotBlank(getToken())) {
+         builder.headers("Authorization", "Bearer %s".formatted(getToken()));
+      }
+      HttpResponse<String> httpResponse = send(builder, HttpResponse.BodyHandlers.ofString());
+      return JsonUtils.parseObject(httpResponse.body(), Bucket.class);
    }
 
    private String serializeSettingsOrEmptyJson(BucketSettings bucketSettings) {
@@ -106,12 +126,12 @@ public class ReductBucketClient extends ReductClient implements BucketClient {
    }
 
    @Override
-   ServerProperties getServerProperties() {
+   public ServerProperties getServerProperties() {
       return serverProperties;
    }
 
    @Override
-   String getToken() {
+   public String getToken() {
       return token;
    }
 

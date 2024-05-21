@@ -29,7 +29,6 @@ import static org.reduct.utils.http.Query.TIME_STAMP;
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-@Builder
 @AllArgsConstructor
 @Getter
 @Setter
@@ -132,7 +131,11 @@ public class Bucket {
     }
 
     /**
-     * Write a record to the entry
+     * Write a record to an entry.
+     * @param entry
+     * @throws ReductException
+     * @throws ReductSDKException
+     * @throws IllegalArgumentException
      */
     public void writeRecord(@NonNull Entry<?> entry) throws ReductException, ReductSDKException, IllegalArgumentException {
         //TODO validation block
@@ -153,6 +156,15 @@ public class Bucket {
         reductClient.send(builder, HttpResponse.BodyHandlers.ofString()).body();
     }
 
+    /**
+     * Get a record from an entry.
+     * @param entry
+     * @return
+     * @param <T>
+     * @throws ReductException
+     * @throws ReductSDKException
+     * @throws IllegalArgumentException
+     */
     public <T extends Serializable> Entry<T> getRecord(Entry<?> entry) throws ReductException, ReductSDKException, IllegalArgumentException {
         if(Strings.isBlank(name) || Strings.isBlank(entry.getName()))
         {
@@ -169,6 +181,33 @@ public class Bucket {
                 .body((T) SerializationUtils.deserialize(httpResponse.body()))
                 .name(entry.getName())
                 .timestamp(httpResponse.headers().firstValue("x-reduct-time").map(Long::getLong).orElse(null))
+                .build();
+    }
+
+    /**
+     * Get only meta information about record.
+     * @param entry
+     * @return
+     * @param <T>
+     * @throws ReductException
+     * @throws ReductSDKException
+     * @throws IllegalArgumentException
+     */
+    public <T extends Serializable> Entry<T> getMetaInfo(Entry<?> entry) throws ReductException, ReductSDKException, IllegalArgumentException {
+        if(Strings.isBlank(name) || Strings.isBlank(entry.getName()))
+        {
+            throw new ReductSDKException("Validation error");
+        }
+        Long timestamp = entry.getTimestamp();
+        String timeStampQuery = Objects.isNull(timestamp) ? "" : getTimestampQuery(timestamp);
+        URI uri = URI.create(reductClient.getServerProperties().getBaseUrl() + String.format(EntryURL.GET_ENTRY.getUrl(), name, entry.getName()) + timeStampQuery);
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(uri)
+                .method("HEAD", HttpRequest.BodyPublishers.noBody());
+        HttpResponse<byte[]> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofByteArray());
+        return (Entry<T>) Entry.builder()
+                .name(entry.getName())
+                .timestamp(httpResponse.headers().firstValue("x-reduct-time").map(Long::valueOf).orElse(null))
                 .build();
     }
 

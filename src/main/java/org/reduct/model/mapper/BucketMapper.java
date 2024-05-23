@@ -13,5 +13,7 @@ public interface BucketMapper {
     BucketMapper INSTANCE = Mappers.getMapper(BucketMapper.class);
 
     @Mapping(target = "reductClient" ,ignore = true)
+    @Mapping(target = "bucketSettings", source = "bucketSettings")
+    @Mapping(target = "settings", ignore = true)
     void copy(@MappingTarget Bucket target, Bucket source);
 }

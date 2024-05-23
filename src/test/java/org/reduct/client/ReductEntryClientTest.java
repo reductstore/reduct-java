@@ -1,28 +1,9 @@
 package org.reduct.client;
 
-import org.apache.commons.lang3.SerializationUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.reduct.client.config.ServerProperties;
-import org.reduct.common.exception.ReductSDKException;
-import org.reduct.model.bucket.Bucket;
-import org.reduct.model.entry.Entry;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
-import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 @Disabled
 public class ReductEntryClientTest {

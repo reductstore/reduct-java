@@ -14,7 +14,6 @@ import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.ResponseExamples;
 import org.reduct.common.ServerURL;
 import org.reduct.common.exception.ReductException;
-import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.bucket.Buckets;
 import org.reduct.model.server.ServerInfo;
 import org.reduct.utils.http.HttpStatus;

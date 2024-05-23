@@ -5,11 +5,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.reduct.client.config.ServerProperties;
+import org.reduct.common.BucketURL;
 import org.reduct.common.ServerURL;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
-import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.bucket.Bucket;
+import org.reduct.model.bucket.BucketSettings;
 import org.reduct.model.bucket.Buckets;
 import org.reduct.model.server.ServerInfo;
 import org.reduct.model.token.AccessToken;
@@ -51,20 +52,45 @@ public class ReductClient {
           throw new ReductException(httpResponse.headers().firstValue(REDUCT_ERROR_HEADER).orElse("Unsuccessful request"), httpResponse.statusCode());
       }
       catch (IOException e) {
-         throw new ReductSDKException("An error occurred while processing the request", e);
+         throw new ReductException("An error occurred while processing the request", e);
       }
       catch (InterruptedException e) {
          Thread.currentThread().interrupt();
-         throw new ReductSDKException("Thread has been interrupted while processing the request", e);
+         throw new ReductException("Thread has been interrupted while processing the request", e);
       }
    }
 
-   public Bucket getBucket(String name) throws ReductException, ReductSDKException, IllegalArgumentException {
-      return new Bucket(name, this).read();
-   }
-
-   public Bucket createBucket(String name) throws ReductException, ReductSDKException, IllegalArgumentException {
-      return new Bucket(name, this).write();
+   /**
+    * Create a new bucket with the name and the settings.
+    * NOTE: If, authentication is enabled on the server, an access token with full access must be provided
+    * to create a new bucket.
+    * @return This bucket
+    * @throws ReductException          If, unable to create the bucket. The instance of the exception holds
+    *                                  the error message returned in the x-reduct-error header and the
+    *                                  status code to indicate the failure.
+    *                                  Some status codes:
+    *                                  401 -> Access token is invalid or was not provided.
+    *                                  403 -> Access token does not have required permissions.
+    *                                  409 -> Bucket with this name already exists.
+    *                                  422 -> Invalid request.
+    *                                  500 -> Internal server error.
+    * @throws IllegalArgumentException If, the bucket name is null or empty.
+    */
+   public Bucket createBucket(String name, BucketSettings bucketSettings) throws ReductException, IllegalArgumentException {
+      String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(name);
+      URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+      HttpRequest.Builder httpRequest = HttpRequest.newBuilder()
+          .uri(uri)
+          .POST(HttpRequest.BodyPublishers.ofString(JsonUtils.serialize(bucketSettings)));
+      HttpResponse<Void> httpResponse = send(httpRequest, HttpResponse.BodyHandlers.discarding());//TODO ask about default settings. The answer from DB always is empty for success, but settings sets as default. This bucket will always have settings as null until invoke read.
+      if (httpResponse.statusCode() == 200) {
+         Bucket bucket = new Bucket(name, this);
+         bucket.setBucketSettings(bucketSettings);
+         return bucket;
+      }
+      else {
+         throw new ReductException(httpResponse.headers().firstValue(REDUCT_ERROR_HEADER).orElse("Unsuccessful request"), httpResponse.statusCode());
+      }
    }
 
    /**
@@ -76,9 +102,8 @@ public class ReductClient {
     * @throws ReductException    if the request fails. The instance of the exception holds
     *                            the error message returned in the x-reduct-error header and the
     *                            status code to indicate the failure.
-    * @throws ReductSDKException If, any client side error occurs.
     */
-   public ServerInfo info() throws ReductException, ReductSDKException {
+   public ServerInfo info() throws ReductException {
       URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), ServerURL.SERVER_INFO.getUrl()));
       HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
       HttpResponse<String> httpResponse = send(builder, HttpResponse.BodyHandlers.ofString());
@@ -92,9 +117,8 @@ public class ReductClient {
     * @throws ReductException    if the request fails. The instance of the exception holds
     *                            the error message returned in the x-reduct-error header and the
     *                            status code to indicate the failure.
-    * @throws ReductSDKException If, any client side error occurs.
     */
-   public Buckets list() throws ReductException, ReductSDKException {
+   public Buckets list() throws ReductException {
       URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), ServerURL.LIST.getUrl()));
       HttpRequest.Builder builder = HttpRequest.newBuilder()
               .uri(uri)
@@ -109,9 +133,8 @@ public class ReductClient {
     * @throws ReductException    if the request fails. The instance of the exception holds
     *                            the error message returned in the x-reduct-error header and the
     *                            status code to indicate the failure.
-    * @throws ReductSDKException If, any client side error occurs.
     */
-   public Boolean isAlive() throws ReductException, ReductSDKException {
+   public Boolean isAlive() throws ReductException {
       URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), ServerURL.ALIVE.getUrl()));
       HttpRequest.Builder builder = HttpRequest.newBuilder()
               .uri(uri)
@@ -124,7 +147,7 @@ public class ReductClient {
     * The method returns a list of tokens with names and creation dates. To use this method, you need an access token with full access.
     * @return AccessTokens
     */
-   public AccessTokens tokens() throws ReductException, ReductSDKException {
+   public AccessTokens tokens() throws ReductException {
       URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), TokenURL.GET_TOKENS.getUrl()));
       HttpRequest.Builder builder = HttpRequest.newBuilder()
               .uri(uri)
@@ -144,11 +167,10 @@ public class ReductClient {
     *                                  any of the buckets listed does not exist on the server.
     *                                  The instance of the exception holds the error message returned in
     *                                  the x-reduct-error header and the status code to indicate the failure.
-    * @throws ReductSDKException       If, any client side error occurs.
     * @throws IllegalArgumentException If the token name is null or blank, or if the
     *                                  {@link org.reduct.model.token.TokenPermissions} object is null.
     */
-   public AccessToken createToken(String tokenName, TokenPermissions permissions) throws ReductException, ReductSDKException, IllegalArgumentException {
+   public AccessToken createToken(String tokenName, TokenPermissions permissions) throws ReductException, IllegalArgumentException {
       if (tokenName == null || tokenName.isBlank()) {
          throw new IllegalArgumentException("Token name must not be null or blank");
       }

@@ -8,7 +8,6 @@ import org.reduct.client.util.TokenExamples;
 import org.reduct.common.ServerURL;
 import org.reduct.common.TokenURL;
 import org.reduct.common.exception.ReductException;
-import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.token.AccessToken;
 import org.reduct.model.token.AccessTokens;
 import org.reduct.model.token.TokenPermissions;

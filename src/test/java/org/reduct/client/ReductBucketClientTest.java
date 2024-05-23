@@ -7,7 +7,6 @@ import org.reduct.client.config.ServerProperties;
 import org.reduct.client.util.BucketExamples;
 import org.reduct.common.BucketURL;
 import org.reduct.common.exception.ReductException;
-import org.reduct.common.exception.ReductSDKException;
 import org.reduct.model.bucket.BucketSettings;
 
 import java.io.IOException;

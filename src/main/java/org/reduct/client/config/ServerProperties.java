@@ -1,4 +1,4 @@
-package org.reduct.client.config;
+package store.reduct.client.config;
 
 public record ServerProperties(boolean isSsl, String host, int port) {
 

@@ -1,4 +1,5 @@
-# Reduct Storage Client SDK for Java
+# ReductStore Client SDK for Java
+
 This package provides a Java client for interacting with the [ReductStore](https://www.reduct.store) service.
 
 ## Requirements
@@ -13,11 +14,11 @@ your machine. You can find instructions for installing ReductStore [here](https:
 NOTE: The token you're instantiating the client with must have full access to create new tokens.
 
 ```java
-import org.reduct.client.ReductTokenClient;
-import org.reduct.client.TokenClient;
-import org.reduct.client.config.ServerProperties;
-import org.reduct.model.token.AccessToken;
-import org.reduct.model.token.TokenPermissions;
+import store.reduct.client.ReductTokenClient;
+import store.reduct.client.TokenClient;
+import store.reduct.client.config.ServerProperties;
+import store.reduct.model.token.AccessToken;
+import store.reduct.model.token.TokenPermissions;
 import java.util.List;
 
 public class Main {
@@ -36,9 +37,9 @@ public class Main {
 
 ### Retrieve information about the server
 ```java
-import org.reduct.client.ReductServerClient;
-import org.reduct.client.config.ServerProperties;
-import org.reduct.model.server.ServerInfo;
+import store.reduct.client.ReductServerClient;
+import store.reduct.client.config.ServerProperties;
+import store.reduct.model.server.ServerInfo;
 
 public class Main {
    public static void main(String[] args) {
@@ -54,11 +55,11 @@ public class Main {
 ```
 ### Create a new bucket
 ```java
-import org.reduct.client.BucketClient;
-import org.reduct.client.ReductBucketClient;
-import org.reduct.client.config.ServerProperties;
-import org.reduct.model.bucket.BucketSettings;
-import org.reduct.model.bucket.QuotaType;
+import store.reduct.client.BucketClient;
+import store.reduct.client.ReductBucketClient;
+import store.reduct.client.config.ServerProperties;
+import store.reduct.model.bucket.BucketSettings;
+import store.reduct.model.bucket.QuotaType;
 
 public class Main {
    public static void main(String[] args) {
@@ -76,4 +77,4 @@ public class Main {
 
 ## References
 
-* [ReductStore HTTP API](https://docs.reduct.store/http-api)
+* [ReductStore HTTP API](https://www.reduct.store/docs/http-api)

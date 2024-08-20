@@ -1,12 +1,12 @@
-package org.reduct.utils;
+package store.reduct.utils;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.experimental.UtilityClass;
-import org.reduct.common.exception.ReductException;
-import org.reduct.model.bucket.BucketSettings;
-import org.reduct.model.token.TokenPermissions;
+import store.reduct.common.exception.ReductException;
+import store.reduct.model.bucket.BucketSettings;
+import store.reduct.model.token.TokenPermissions;
 
 import java.util.List;
 

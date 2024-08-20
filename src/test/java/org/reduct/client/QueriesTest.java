@@ -1,7 +1,7 @@
-package org.reduct.client;
+package store.reduct.client;
 
 import org.junit.jupiter.api.Test;
-import org.reduct.utils.http.Queries;
+import store.reduct.utils.http.Queries;
 
 import javax.xml.transform.stream.StreamResult;
 

@@ -1,4 +1,4 @@
-package org.reduct.common;
+package store.reduct.common;
 
 public enum ServerURL {
 

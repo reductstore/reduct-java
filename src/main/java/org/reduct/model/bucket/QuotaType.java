@@ -1,4 +1,4 @@
-package org.reduct.model.bucket;
+package store.reduct.model.bucket;
 
 public enum QuotaType {
    NONE, FIFO

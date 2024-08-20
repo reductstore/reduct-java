@@ -1,4 +1,4 @@
-package org.reduct.client;
+package store.reduct.client;
 
 import org.junit.jupiter.api.Disabled;
 

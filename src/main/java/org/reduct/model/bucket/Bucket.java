@@ -1,19 +1,19 @@
-package org.reduct.model.bucket;
+package store.reduct.model.bucket;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.apache.commons.lang3.ArrayUtils;
-import org.reduct.client.ReductClient;
-import org.reduct.common.BucketURL;
-import org.reduct.common.RecordURL;
-import org.reduct.common.exception.ReductException;
-import org.reduct.model.mapper.BucketMapper;
-import org.reduct.model.record.QueryId;
-import org.reduct.model.record.Record;
-import org.reduct.utils.JsonUtils;
-import org.reduct.utils.Strings;
-import org.reduct.utils.http.Queries;
+import store.reduct.client.ReductClient;
+import store.reduct.common.BucketURL;
+import store.reduct.common.RecordURL;
+import store.reduct.common.exception.ReductException;
+import store.reduct.model.mapper.BucketMapper;
+import store.reduct.model.record.QueryId;
+import store.reduct.model.record.Record;
+import store.reduct.utils.JsonUtils;
+import store.reduct.utils.Strings;
+import store.reduct.utils.http.Queries;
 
 import java.math.BigInteger;
 import java.net.URI;
@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.reduct.utils.http.HttpHeaders.*;
+import static store.reduct.utils.http.HttpHeaders.*;
 
 @NoArgsConstructor
 @EqualsAndHashCode

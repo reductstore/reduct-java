@@ -1,4 +1,4 @@
-package org.reduct.utils.http;
+package store.reduct.utils.http;
 
 import lombok.experimental.UtilityClass;
 

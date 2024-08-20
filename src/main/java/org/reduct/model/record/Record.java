@@ -1,4 +1,4 @@
-package org.reduct.model.record;
+package store.reduct.model.record;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

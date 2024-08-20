@@ -1,4 +1,4 @@
-package org.reduct.common;
+package store.reduct.common;
 
 public enum BucketURL {
     CREATE_BUCKET("api/v1/b/%s"),

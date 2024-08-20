@@ -1,4 +1,4 @@
-package org.reduct.client.util;
+package store.reduct.client.util;
 
 public class TokenExamples {
 

@@ -1,4 +1,4 @@
-package org.reduct.client;
+package store.reduct.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,13 +10,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.reduct.client.config.ServerProperties;
-import org.reduct.client.util.ResponseExamples;
-import org.reduct.common.ServerURL;
-import org.reduct.common.exception.ReductException;
-import org.reduct.model.bucket.Buckets;
-import org.reduct.model.server.ServerInfo;
-import org.reduct.utils.http.HttpStatus;
+import store.reduct.client.config.ServerProperties;
+import store.reduct.client.util.ResponseExamples;
+import store.reduct.common.ServerURL;
+import store.reduct.common.exception.ReductException;
+import store.reduct.model.bucket.Buckets;
+import store.reduct.model.server.ServerInfo;
+import store.reduct.utils.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.URI;

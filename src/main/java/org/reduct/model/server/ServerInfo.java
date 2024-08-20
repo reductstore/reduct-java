@@ -1,4 +1,4 @@
-package org.reduct.model.server;
+package store.reduct.model.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

@@ -1,4 +1,4 @@
-package org.reduct.model.bucket;
+package store.reduct.model.bucket;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

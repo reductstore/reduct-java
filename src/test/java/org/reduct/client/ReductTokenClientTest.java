@@ -1,17 +1,17 @@
-package org.reduct.client;
+package store.reduct.client;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.reduct.client.config.ServerProperties;
-import org.reduct.client.util.TokenExamples;
-import org.reduct.common.ServerURL;
-import org.reduct.common.TokenURL;
-import org.reduct.common.exception.ReductException;
-import org.reduct.model.token.AccessToken;
-import org.reduct.model.token.AccessTokens;
-import org.reduct.model.token.TokenPermissions;
-import org.reduct.utils.http.HttpStatus;
+import store.reduct.client.config.ServerProperties;
+import store.reduct.client.util.TokenExamples;
+import store.reduct.common.ServerURL;
+import store.reduct.common.TokenURL;
+import store.reduct.common.exception.ReductException;
+import store.reduct.model.token.AccessToken;
+import store.reduct.model.token.AccessTokens;
+import store.reduct.model.token.TokenPermissions;
+import store.reduct.utils.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.URI;

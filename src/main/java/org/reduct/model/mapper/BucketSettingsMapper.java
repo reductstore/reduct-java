@@ -1,9 +1,9 @@
-package org.reduct.model.mapper;
+package store.reduct.model.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
-import org.reduct.model.bucket.BucketSettings;
+import store.reduct.model.bucket.BucketSettings;
 
 @Mapper
 public interface BucketSettingsMapper {

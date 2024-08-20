@@ -1,4 +1,4 @@
-package org.reduct.common.exception;
+package store.reduct.common.exception;
 
 import lombok.Getter;
 

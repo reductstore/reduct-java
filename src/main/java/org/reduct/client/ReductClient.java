@@ -1,23 +1,23 @@
-package org.reduct.client;
+package store.reduct.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.reduct.client.config.ServerProperties;
-import org.reduct.common.BucketURL;
-import org.reduct.common.ServerURL;
-import org.reduct.common.TokenURL;
-import org.reduct.common.exception.ReductException;
-import org.reduct.model.bucket.Bucket;
-import org.reduct.model.bucket.BucketSettings;
-import org.reduct.model.bucket.Buckets;
-import org.reduct.model.server.ServerInfo;
-import org.reduct.model.token.AccessToken;
-import org.reduct.model.token.AccessTokens;
-import org.reduct.model.token.TokenPermissions;
-import org.reduct.utils.JsonUtils;
-import org.reduct.utils.http.HttpStatus;
+import store.reduct.client.config.ServerProperties;
+import store.reduct.common.BucketURL;
+import store.reduct.common.ServerURL;
+import store.reduct.common.TokenURL;
+import store.reduct.common.exception.ReductException;
+import store.reduct.model.bucket.Bucket;
+import store.reduct.model.bucket.BucketSettings;
+import store.reduct.model.bucket.Buckets;
+import store.reduct.model.server.ServerInfo;
+import store.reduct.model.token.AccessToken;
+import store.reduct.model.token.AccessTokens;
+import store.reduct.model.token.TokenPermissions;
+import store.reduct.utils.JsonUtils;
+import store.reduct.utils.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.URI;
@@ -25,7 +25,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import static org.reduct.utils.Strings.isNotBlank;
+import static store.reduct.utils.Strings.isNotBlank;
 
 /**
  * Base class for all clients.
@@ -113,7 +113,7 @@ public class ReductClient {
    /**
     * Get a list of the buckets with their stats
     *
-    * @return Collection of {@link org.reduct.model.bucket.Bucket}
+    * @return Collection of {@link store.reduct.model.bucket.Bucket}
     * @throws ReductException    if the request fails. The instance of the exception holds
     *                            the error message returned in the x-reduct-error header and the
     *                            status code to indicate the failure.
@@ -168,7 +168,7 @@ public class ReductClient {
     *                                  The instance of the exception holds the error message returned in
     *                                  the x-reduct-error header and the status code to indicate the failure.
     * @throws IllegalArgumentException If the token name is null or blank, or if the
-    *                                  {@link org.reduct.model.token.TokenPermissions} object is null.
+    *                                  {@link store.reduct.model.token.TokenPermissions} object is null.
     */
    public AccessToken createToken(String tokenName, TokenPermissions permissions) throws ReductException, IllegalArgumentException {
       if (tokenName == null || tokenName.isBlank()) {

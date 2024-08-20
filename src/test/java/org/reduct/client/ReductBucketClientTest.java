@@ -1,13 +1,13 @@
-package org.reduct.client;
+package store.reduct.client;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.reduct.client.config.ServerProperties;
-import org.reduct.client.util.BucketExamples;
-import org.reduct.common.BucketURL;
-import org.reduct.common.exception.ReductException;
-import org.reduct.model.bucket.BucketSettings;
+import store.reduct.client.config.ServerProperties;
+import store.reduct.client.util.BucketExamples;
+import store.reduct.common.BucketURL;
+import store.reduct.common.exception.ReductException;
+import store.reduct.model.bucket.BucketSettings;
 
 import java.io.IOException;
 import java.net.URI;

@@ -1,4 +1,4 @@
-package org.reduct.model.token;
+package store.reduct.model.token;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

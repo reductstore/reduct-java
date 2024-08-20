@@ -2,5 +2,4 @@
 .gradle
 .idea
 
-/gradle/wrapper/gradle-wrapper.jar
 .profileconfig.json

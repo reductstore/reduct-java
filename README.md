@@ -1,10 +1,6 @@
 # Reduct Storage Client SDK for Java
 This package provides a Java client for interacting with the [ReductStore](https://www.reduct.store) service.
 
-## Features
-* Supports the [ReductStore HTTP API v1.4](https://docs.reduct.store/http-api)
-* Token-based authentication for secure access to the database
-
 ## Requirements
 * Java 17 or higher
 

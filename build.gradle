@@ -4,7 +4,7 @@ plugins {
     id "io.freefair.lombok" version "6.5.0-rc1"
 }
 
-version = '0.0.1'
+version = '0.1.0'
 group = 'org.reduct'
 archivesBaseName = 'reduct-java'
 
@@ -40,6 +40,8 @@ jar {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+
 publishing {
     publications {
         maven(MavenPublication) {

@@ -67,6 +67,10 @@ mavenPublishing {
         }
         developers {
             developer {
+                id = "mtp"
+                name = "matepocz"
+            }
+            developer {
                 id = "Rumpelshtinskiy"
                 name = "Rustam Galikhanov"
             }

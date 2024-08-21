@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
-    id 'maven-publish'
-    id "io.freefair.lombok" version "6.5.0-rc1"
+    id "io.freefair.lombok" version "8.10"
+    id "com.vanniktech.maven.publish" version "0.29.0"
 }
 
 version = '0.1.0'
@@ -41,22 +41,28 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+import com.vanniktech.maven.publish.SonatypeHost
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
 
-    repositories {
-        maven {
-            name = "MavenCentral"
-            url = uri("https://s01.oss.sonatype.org/service/local/")
-            credentials {
-                username = System.getenv("MAVEN_USERNAME")
-                password = System.getenv("MAVEN_PASSWORD")
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+    coordinates(archivesBaseName, archivesBaseName,  version)
+    pom {
+        name = archivesBaseName
+        description = "ReductStore Client SDK for Java"
+        url = "https://www.reduct.store/docs"
+
+        licenses {
+            license {
+                name = "MIT License"
+                url = "https://opensource.org/licenses/MIT"
             }
+        }
+        scm {
+            url = "https://github.com/reductstore/reduct-java.git"
+            connection = "scm:git:git://github.com/reductstore/reduct-java.git"
+            developerConnection = "scm:git:ssh://github.com/reductstore/reduct-java.git"
         }
     }
 }

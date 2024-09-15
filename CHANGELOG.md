@@ -17,10 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ServerClient.isAlive() method to check if the storage engine is
   working [PR-17](https://github.com/reductstore/reduct-java/pull/17)
 - TokenClient.getTokens() method to get a list of tokens [PR-20](https://github.com/reductstore/reduct-java/pull/20)
-- EntryClient.writeRecord(Bucket bucket, Entry<?> body) method to add an record to a
+- EntryClient.writeRecord(Bucket bucket, Entry<?> body) method to add a record to a
   bucket [PR-25](https://github.com/reductstore/reduct-java/issues/25)
-- EntryClient.getRecord(Bucket bucket, Entry<?> body) method to get an record from a
+- EntryClient.getRecord(Bucket bucket, Entry<?> body) method to get a record from a
   bucket [PR-25](https://github.com/reductstore/reduct-java/issues/27)
+- Resolve bug: Bucket.query handle only one HTTP GET request. The query now returns the records until gets last
+  bucket [PR-50](https://github.com/reductstore/reduct-java/issues/47)
 
 ### Infrastructure:
 

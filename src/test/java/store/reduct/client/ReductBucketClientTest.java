@@ -1,25 +1,9 @@
 package store.reduct.client;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import store.reduct.client.config.ServerProperties;
-import store.reduct.client.util.BucketExamples;
-import store.reduct.common.BucketURL;
-import store.reduct.common.exception.ReductException;
-import store.reduct.model.bucket.BucketSettings;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 @Disabled
 class ReductBucketClientTest {

@@ -39,45 +39,47 @@ jar {
 
 tasks.named('test') {
     useJUnitPlatform()
+    dependsOn(tasks.assemble)
 }
 
 import com.vanniktech.maven.publish.SonatypeHost
+tasks.register('publishingToCentralMaven') {
+    println 'Publishing to Central Maven is started.'
+    mavenPublishing {
+        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+        signAllPublications()
 
+        coordinates(group, archivesBaseName,  version)
+        pom {
+            name = archivesBaseName
+            description = "ReductStore Client SDK for Java"
+            url = "https://www.reduct.store/docs"
 
-mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    signAllPublications()
-
-    coordinates(group, archivesBaseName,  version)
-    pom {
-        name = archivesBaseName
-        description = "ReductStore Client SDK for Java"
-        url = "https://www.reduct.store/docs"
-
-        licenses {
-            license {
-                name = "MIT License"
-                url = "https://opensource.org/licenses/MIT"
+            licenses {
+                license {
+                    name = "MIT License"
+                    url = "https://opensource.org/licenses/MIT"
+                }
             }
-        }
-        scm {
-            url = "https://github.com/reductstore/reduct-java.git"
-            connection = "scm:git:git://github.com/reductstore/reduct-java.git"
-            developerConnection = "scm:git:ssh://github.com/reductstore/reduct-java.git"
-        }
-        developers {
-            developer {
-                id = "mtp"
-                name = "matepocz"
+            scm {
+                url = "https://github.com/reductstore/reduct-java.git"
+                connection = "scm:git:git://github.com/reductstore/reduct-java.git"
+                developerConnection = "scm:git:ssh://github.com/reductstore/reduct-java.git"
             }
-            developer {
-                id = "Rumpelshtinskiy"
-                name = "Rustam Galikhanov"
-            }
-            developer {
-                id = "reductsoftware"
-                name = "ReductSoftware UG"
-                email = "info@reduct.store"
+            developers {
+                developer {
+                    id = "mtp"
+                    name = "matepocz"
+                }
+                developer {
+                    id = "Rumpelshtinskiy"
+                    name = "Rustam Galikhanov"
+                }
+                developer {
+                    id = "reductsoftware"
+                    name = "ReductSoftware UG"
+                    email = "info@reduct.store"
+                }
             }
         }
     }

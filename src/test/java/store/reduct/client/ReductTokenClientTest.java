@@ -1,29 +1,6 @@
 package store.reduct.client;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import store.reduct.client.config.ServerProperties;
-import store.reduct.client.util.TokenExamples;
-import store.reduct.common.ServerURL;
-import store.reduct.common.TokenURL;
-import store.reduct.common.exception.ReductException;
-import store.reduct.model.token.AccessToken;
-import store.reduct.model.token.AccessTokens;
-import store.reduct.model.token.TokenPermissions;
-import store.reduct.utils.http.HttpStatus;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @Disabled
 class ReductTokenClientTest {

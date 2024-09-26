@@ -3,11 +3,6 @@ package store.reduct.client;
 import org.junit.jupiter.api.Test;
 import store.reduct.utils.http.Queries;
 
-import javax.xml.transform.stream.StreamResult;
-
-import java.util.Iterator;
-import java.util.stream.Stream;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QueriesTest {

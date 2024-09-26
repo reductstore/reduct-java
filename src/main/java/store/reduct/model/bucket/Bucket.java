@@ -22,8 +22,9 @@ import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static store.reduct.utils.http.HttpHeaders.*;
 
@@ -260,7 +261,7 @@ public class Bucket {
      * @param ttl
      * @return
      */
-    public Iterator<Record> query(String entryName, Integer start, Integer stop, Integer ttl) {
+    public Iterator<Record> query(String entryName, Long start, Long stop, Long ttl) throws ReductException, IllegalArgumentException {
         if(Strings.isBlank(name) || Strings.isBlank(entryName) || Objects.isNull(start) || Objects.isNull(stop) || Objects.isNull(ttl))
         {
             throw new ReductException("Validation error");
@@ -272,102 +273,176 @@ public class Bucket {
             .GET();
         HttpResponse<String> response = reductClient.send(builder, HttpResponse.BodyHandlers.ofString());
         QueryId queryId = JsonUtils.parseObject(response.body(), QueryId.class);
-        return getRecords(entryName, queryId.getId()).iterator();
+
+        return new RecordIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().getBaseUrl());
     }
 
-    /**
-     * Get a bulk of records from an entry
-     * @param entryName
-     * @param queryId
-     * @return
-     * @throws ReductException
-     * @throws IllegalArgumentException
-     */
-    Stream<Record> getRecords(@NonNull String entryName, Long queryId) throws ReductException, IllegalArgumentException {
-        if(Objects.isNull(queryId))
+    public Iterator<Record> getMetaInfos(String entryName, Long start, Long stop, Long ttl) throws ReductException, IllegalArgumentException {
+        if(Strings.isBlank(name) || Strings.isBlank(entryName) || Objects.isNull(start) || Objects.isNull(stop) || Objects.isNull(ttl))
         {
             throw new ReductException("Validation error");
         }
-        URI uri = URI.create(reductClient.getServerProperties().getBaseUrl() + String.format(RecordURL.GET_ENTRIES.getUrl(), name, entryName) + new Queries("q", queryId));
+        URI uri = URI.create(reductClient.getServerProperties().getBaseUrl() +
+            String.format(RecordURL.QUERY.getUrl(), name, entryName) + new Queries("start", start).add("stop", stop).add("ttl", ttl));
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .GET();
-        HttpResponse<byte[]> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofByteArray());
-        ByteBuffer byteBuffer = ByteBuffer.wrap(httpResponse.body());
-        return httpResponse.headers()
-            .map()
-            .entrySet()
-            .stream()
-            .filter(ent -> ent.getKey().contains(getXReductTimeWithUnderscoreHeader()))
-            .map(ent -> {
-                String ts = ent.getKey().substring(getXReductTimeWithUnderscoreHeader().length());
-                String[] split = ent.getValue().get(0).split(",");
-                if(split.length < 2) {
-                    throw new ReductException(String.format("Headers has a wrong format for timestamp: %s", ts));
-                }
-                try {
-                    int length = Integer.parseInt(split[0]);
-                    String type = split[1];
-                    byte[] tempBuf = new byte[length];
-                    byteBuffer.get(tempBuf);
-                    return Record.builder()
-                        .body(tempBuf)
-                        .entryName(entryName)
-                        .timestamp(Optional.of(ts).map(Long::parseLong).orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
-                        .type(type)
-                        .length(length)
-                        .build();
-                }
-                catch (NumberFormatException ex) {
-                    throw new ReductException(CONTENT_LENGTH_IS_NOT_SET_IN_THE_RECORD);
-                }
-            });
+        HttpResponse<String> response = reductClient.send(builder, HttpResponse.BodyHandlers.ofString());
+        QueryId queryId = JsonUtils.parseObject(response.body(), QueryId.class);
+
+        return new MetaInfoIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().getBaseUrl());
     }
 
+    private boolean isNotValidRecord(Record val) {
+        return Strings.isBlank(val.getEntryName())
+                || val.getTimestamp() <= 0
+                || Objects.isNull(val.getBody());
+    }
 
-    Collection<Record> getMetaInfos(Record record, Long queryId) throws ReductException, IllegalArgumentException {
-        if(Strings.isBlank(name) || Strings.isBlank(record.getEntryName()) || Objects.isNull(queryId))
-        {
-            throw new ReductException("Validation error");
+    private class RecordIterator implements Iterator<Record> {
+        @Getter(AccessLevel.PACKAGE)
+        private final HttpRequest.Builder builder;
+        private final String recordEntryName;
+        @Getter(AccessLevel.PACKAGE)
+        private final PriorityBlockingQueue<HeaderInstance> headerInstances = new PriorityBlockingQueue<>(8, Comparator.comparingLong(instance -> instance.ts));
+        private byte[] body;
+        @Setter(AccessLevel.PACKAGE)
+        @Getter(AccessLevel.PACKAGE)
+        private boolean last = false;
+        boolean hasNextRecord() {
+            return !headerInstances.isEmpty();
         }
-        URI uri = URI.create(reductClient.getServerProperties().getBaseUrl() + String.format(RecordURL.GET_ENTRIES.getUrl(), name, record.getEntryName()) + new Queries("q", queryId));
-        HttpRequest.Builder builder = HttpRequest.newBuilder()
-            .uri(uri)
-            .method("HEAD", HttpRequest.BodyPublishers.noBody());
-        HttpResponse<byte[]> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofByteArray());
-        return httpResponse.headers()
-            .map()
-            .entrySet()
-            .stream()
-            .filter(ent -> ent.getKey().contains(getXReductTimeWithUnderscoreHeader()))
-            .map(ent -> {
-                String ts = ent.getKey().substring(getXReductTimeWithUnderscoreHeader().length());
-                String[] split = ent.getValue().get(0).split(",");
-                if(split.length < 2) {
-                    throw new ReductException(String.format("Headers has a wrong format for timestamp: %s", ts));
+        private RecordIterator(String bucketName, String recordEntryName, Long queryId, String baseUrl) {
+            this(recordEntryName, queryId, HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + String.format(RecordURL.GET_ENTRIES.getUrl(), bucketName, recordEntryName) + new Queries("q", queryId)))
+                .GET());
+        }
+
+        private RecordIterator(String recordEntryName, Long queryId, HttpRequest.Builder builder) {
+            if(Objects.isNull(queryId))
+            {
+                throw new ReductException("Validation error: queryId is null");
+            }
+            this.recordEntryName = recordEntryName;
+            this.builder = builder;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if(hasNextRecord()) {
+                return true;
+            }
+            if(!isLast()) {
+                HttpResponse<byte[]> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofByteArray());
+                if (httpResponse.statusCode() != 204) {
+                    body = httpResponse.body();
+                    int offset = 0;
+                    for (Map.Entry<String, List<String>> ent : httpResponse.headers().map().entrySet()) {
+                        if (ent.getKey().contains(getXReductTimeWithUnderscoreHeader())) {
+                            String ts = ent.getKey().substring(getXReductTimeWithUnderscoreHeader().length());
+                            String[] split = ent.getValue().get(0).split(",");
+                            if (split.length < 2) {
+                                throw new ReductException(String.format("Headers has a wrong format for timestamp: %s", ts));
+                            }
+                            try {
+                                int length = Integer.parseInt(split[0]);
+                                String type = split[1];
+                                headerInstances.put(HeaderInstance.builder()
+                                    .ts(Optional.of(ts).map(Long::parseLong).orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
+                                    .type(type)
+                                    .length(length)
+                                    .offset(offset)
+                                    .build());
+                                offset += length;
+                            } catch (NumberFormatException ex) {
+                                throw new ReductException(CONTENT_LENGTH_IS_NOT_SET_IN_THE_RECORD);
+                            }
+                        }
+                    }
                 }
-                try {
-                    int length = Integer.parseInt(split[0]);
-                    String type = split[1];
-                    byte[] tempBuf = new byte[length];
-                    return Record.builder()
-                        .body(tempBuf)
-                        .entryName(record.getEntryName())
-                        .timestamp(Optional.of(ts).map(Long::parseLong).orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
-                        .type(type)
-                        .length(length)
-                        .build();
+                else {
+                    setLast(true);
                 }
-                catch (NumberFormatException ex) {
-                    throw new ReductException(CONTENT_LENGTH_IS_NOT_SET_IN_THE_RECORD);
-                }
-            })
-            .collect(Collectors.toCollection(LinkedList::new));
+            }
+            return hasNextRecord();
+        }
+
+        @Override
+        public Record next() {
+            if(last) {
+                throw new NoSuchElementException();
+            }
+            else if(Objects.isNull(body) || !hasNextRecord()) {
+                throw new ReductException("Invoke hasNext() method first");
+            }
+            HeaderInstance instance = headerInstances.poll();
+            ByteBuffer byteBuffer = ByteBuffer.wrap(body);
+            byte[] nextBody = new byte[instance.length];
+            byteBuffer.get(nextBody, instance.getOffset(), instance.getLength());
+
+            return Record.builder()
+                .body(nextBody)
+                .entryName(recordEntryName)
+                .timestamp(instance.getTs())
+                .type(instance.getType())
+                .length(instance.getLength())
+                .build();
+        }
     }
 
-    private boolean isNotValidRecord(Record record) {
-        return Strings.isBlank(record.getEntryName())
-                || record.getTimestamp() <= 0
-                || Objects.isNull(record.getBody());
+    private class MetaInfoIterator extends RecordIterator {
+
+        private MetaInfoIterator(String bucketName, String recordEntryName, Long queryId, String baseUrl) {
+            super(bucketName, recordEntryName, queryId, baseUrl);
+
+        }
+        private MetaInfoIterator(String recordEntryName, Long queryId, HttpRequest.Builder builder) {
+            super(recordEntryName, queryId, builder.method("HEAD", HttpRequest.BodyPublishers.noBody()));
+        }
+
+        @Override
+        public boolean hasNext() {
+            if(hasNextRecord()) {
+                return true;
+            }
+            if(!isLast()) {
+                HttpResponse<byte[]> httpResponse = reductClient.send(getBuilder(), HttpResponse.BodyHandlers.ofByteArray());
+                if (httpResponse.statusCode() != 204) {
+                    for (Map.Entry<String, List<String>> ent : httpResponse.headers().map().entrySet()) {
+                        if (ent.getKey().contains(getXReductTimeWithUnderscoreHeader())) {
+                            String ts = ent.getKey().substring(getXReductTimeWithUnderscoreHeader().length());
+                            String[] split = ent.getValue().get(0).split(",");
+                            if (split.length < 2) {
+                                throw new ReductException(String.format("Headers has a wrong format for timestamp: %s", ts));
+                            }
+                            try {
+                                int length = Integer.parseInt(split[0]);
+                                String type = split[1];
+                                getHeaderInstances().put(HeaderInstance.builder()
+                                    .ts(Optional.of(ts).map(Long::parseLong).orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
+                                    .type(type)
+                                    .length(length)
+                                    .build());
+                            } catch (NumberFormatException ex) {
+                                throw new ReductException(CONTENT_LENGTH_IS_NOT_SET_IN_THE_RECORD);
+                            }
+                        }
+                    }
+                }
+                else {
+                    setLast(true);
+                }
+            }
+            return hasNextRecord();
+        }
+    }
+
+    @Data
+    @Builder
+    private static class HeaderInstance {
+        Long ts;
+        String type;
+        int length;
+        int offset;
     }
 }

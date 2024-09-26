@@ -13,17 +13,17 @@ import lombok.*;
 @AllArgsConstructor
 public class BucketSettings {
 
-   @JsonProperty("max_block_size")
-   private Integer maxBlockSize;
+	@JsonProperty("max_block_size")
+	private Integer maxBlockSize;
 
-   @JsonProperty("max_block_records")
-   private Integer maxBlockRecords;
+	@JsonProperty("max_block_records")
+	private Integer maxBlockRecords;
 
-   @JsonProperty("quota_type")
-   @JsonFormat(shape = JsonFormat.Shape.STRING)
-   private QuotaType quotaType;
+	@JsonProperty("quota_type")
+	@JsonFormat(shape = JsonFormat.Shape.STRING)
+	private QuotaType quotaType;
 
-   @JsonProperty("quota_size")
-   private Integer quotaSize;
+	@JsonProperty("quota_size")
+	private Integer quotaSize;
 
 }

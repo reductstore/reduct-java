@@ -7,6 +7,6 @@ import store.reduct.model.bucket.EntryInfo;
 
 @Mapper
 public interface EntryInfoMapper {
-    EntryInfoMapper INSTANCE = Mappers.getMapper(EntryInfoMapper.class);
-    void copy(@MappingTarget EntryInfo target, EntryInfo source);
+	EntryInfoMapper INSTANCE = Mappers.getMapper(EntryInfoMapper.class);
+	void copy(@MappingTarget EntryInfo target, EntryInfo source);
 }

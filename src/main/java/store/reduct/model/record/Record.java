@@ -10,9 +10,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class Record {
-    private String entryName;
-    private Long timestamp;
-    private byte[] body;
-    private String type;
-    private Integer length;
+	private String entryName;
+	private Long timestamp;
+	private byte[] body;
+	private String type;
+	private Integer length;
 }

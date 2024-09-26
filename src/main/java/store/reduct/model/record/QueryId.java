@@ -10,6 +10,6 @@ import lombok.*;
 @Getter
 @Setter
 public class QueryId {
-    @JsonProperty("id")
-    Long id;
+	@JsonProperty("id")
+	Long id;
 }

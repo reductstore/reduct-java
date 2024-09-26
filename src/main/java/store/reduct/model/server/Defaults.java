@@ -13,6 +13,6 @@ import store.reduct.model.bucket.BucketSettings;
 @ToString
 public class Defaults {
 
-   @JsonProperty("bucket")
-   private BucketSettings bucketSettings;
+	@JsonProperty("bucket")
+	private BucketSettings bucketSettings;
 }

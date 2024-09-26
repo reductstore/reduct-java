@@ -8,28 +8,28 @@ import lombok.*;
 @AllArgsConstructor
 public class ServerInfo {
 
-   @JsonProperty("version")
-   private String version;
+	@JsonProperty("version")
+	private String version;
 
-   @JsonProperty("bucket_count")
-   private int bucketCount;
+	@JsonProperty("bucket_count")
+	private int bucketCount;
 
-   @JsonProperty("usage")
-   private int usage;
+	@JsonProperty("usage")
+	private int usage;
 
-   @JsonProperty("uptime")
-   private int uptime;
+	@JsonProperty("uptime")
+	private int uptime;
 
-   @JsonProperty("oldest_record")
-   private String oldestRecord;
+	@JsonProperty("oldest_record")
+	private String oldestRecord;
 
-   @JsonProperty("latest_record")
-   private String latestRecord;
+	@JsonProperty("latest_record")
+	private String latestRecord;
 
-   @JsonProperty("defaults")
-   private Defaults defaults;
+	@JsonProperty("defaults")
+	private Defaults defaults;
 
-   @JsonProperty("license")
-   private String license;
+	@JsonProperty("license")
+	private String license;
 
 }

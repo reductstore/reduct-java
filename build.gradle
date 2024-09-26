@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id "io.freefair.lombok" version "8.10"
     id "com.vanniktech.maven.publish" version "0.29.0"
+    id "com.diffplug.spotless" version "7.0.0.BETA2"
 }
 
 version = '0.1.0'
@@ -17,6 +18,19 @@ java {
 repositories {
     mavenLocal()
     mavenCentral()
+}
+
+spotless {
+    java {
+        importOrder()
+        removeUnusedImports()
+//        googleJavaFormat() // has its own section below
+        eclipse()          // has its own section below
+//        prettier()         // has its own section below
+//        clangFormat()      // has its own section below
+
+//        licenseHeader '/* (C) $YEAR */' // or licenseHeaderFile
+    }
 }
 
 dependencies {

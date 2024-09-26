@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed:
+
+- Resolve bug: Bucket.query handle only one HTTP GET request. The query now returns the records until gets last
+  bucket [PR-50](https://github.com/reductstore/reduct-java/issues/47)
+
+## 0.1.0 - 2024-08-21
+
 ### Added:
 
 - BucketClient.createBucket() method to create a bucket [PR-10](https://github.com/reductstore/reduct-java/pull/10)
@@ -21,8 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bucket [PR-25](https://github.com/reductstore/reduct-java/issues/25)
 - EntryClient.getRecord(Bucket bucket, Entry<?> body) method to get a record from a
   bucket [PR-25](https://github.com/reductstore/reduct-java/issues/27)
-- Resolve bug: Bucket.query handle only one HTTP GET request. The query now returns the records until gets last
-  bucket [PR-50](https://github.com/reductstore/reduct-java/issues/47)
 
 ### Infrastructure:
 

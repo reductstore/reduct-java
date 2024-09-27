@@ -1,11 +1,7 @@
 package store.reduct.client.config;
 
-public record ServerProperties(boolean isSsl, String host, int port) {
+import lombok.Builder;
 
-	/**
-	 * @return The base url for the server
-	 */
-	public String getBaseUrl() {
-		return (isSsl ? "https://" : "http://") + host + ":" + port;
-	}
+@Builder
+public record ServerProperties(String url, String apiToken) {
 }

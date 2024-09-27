@@ -104,8 +104,7 @@ public class Bucket {
 		}
 		String createBucketPath = BucketURL.GET_BUCKET.getUrl().formatted(name);
 		HttpRequest.Builder builder = HttpRequest.newBuilder()
-				.uri(URI.create("%s/%s".formatted(reductClient.getServerProperties().getBaseUrl(), createBucketPath)))
-				.GET();
+				.uri(URI.create("%s/%s".formatted(reductClient.getServerProperties().url(), createBucketPath))).GET();
 		HttpResponse<String> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofString());
 		BucketMapper.INSTANCE.copy(this, JsonUtils.parseObject(httpResponse.body(), Bucket.class));
 		return this;
@@ -132,7 +131,7 @@ public class Bucket {
 	@JsonIgnore
 	public void setSettings(BucketSettings bucketSettings) throws ReductException, IllegalArgumentException {
 		String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(name);
-		URI uri = URI.create("%s/%s".formatted(reductClient.getServerProperties().getBaseUrl(), createBucketPath));
+		URI uri = URI.create("%s/%s".formatted(reductClient.getServerProperties().url(), createBucketPath));
 		HttpRequest.Builder httpRequest = HttpRequest.newBuilder().uri(uri)
 				.PUT(HttpRequest.BodyPublishers.ofString(JsonUtils.serialize(bucketSettings)));
 		reductClient.send(httpRequest, HttpResponse.BodyHandlers.discarding()); // TODO ask about default settings. The
@@ -169,7 +168,7 @@ public class Bucket {
 				? record.getTimestamp()
 				: Instant.now().getNano() / 1000;
 
-		URI uri = URI.create(reductClient.getServerProperties().getBaseUrl()
+		URI uri = URI.create(reductClient.getServerProperties().url()
 				+ String.format(RecordURL.WRITE_ENTRY.getUrl(), name, record.getEntryName())
 				+ new Queries(TS, timestamp));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).header(getContentTypeHeader(), record.getType())
@@ -188,7 +187,7 @@ public class Bucket {
 	 */
 	public void writeRecords(String entryName, Iterator<Record> records)
 			throws ReductException, IllegalArgumentException {
-		URI uri = URI.create(reductClient.getServerProperties().getBaseUrl()
+		URI uri = URI.create(reductClient.getServerProperties().url()
 				+ String.format(RecordURL.WRITE_ENTRY_BATCH.getUrl(), name, entryName));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri);
 
@@ -224,7 +223,7 @@ public class Bucket {
 			throw new ReductException("Validation error");
 		}
 		String timeStampQuery = Objects.isNull(timestamp) ? "" : new Queries(TS, timestamp).toString();
-		URI uri = URI.create(reductClient.getServerProperties().getBaseUrl()
+		URI uri = URI.create(reductClient.getServerProperties().url()
 				+ String.format(RecordURL.GET_ENTRY.getUrl(), name, entryName) + timeStampQuery);
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
 		HttpResponse<byte[]> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofByteArray());
@@ -252,7 +251,7 @@ public class Bucket {
 			throw new ReductException("Validation error");
 		}
 		String timeStampQuery = Objects.isNull(timestamp) ? "" : new Queries(TS, timestamp).toString();
-		URI uri = URI.create(reductClient.getServerProperties().getBaseUrl()
+		URI uri = URI.create(reductClient.getServerProperties().url()
 				+ String.format(RecordURL.GET_ENTRY.getUrl(), name, entryName) + timeStampQuery);
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).method("HEAD",
 				HttpRequest.BodyPublishers.noBody());
@@ -282,14 +281,14 @@ public class Bucket {
 				|| Objects.isNull(ttl)) {
 			throw new ReductException("Validation error");
 		}
-		URI uri = URI.create(reductClient.getServerProperties().getBaseUrl()
-				+ String.format(RecordURL.QUERY.getUrl(), name, entryName)
-				+ new Queries("start", start).add("stop", stop).add("ttl", ttl));
+		URI uri = URI.create(
+				reductClient.getServerProperties().url() + String.format(RecordURL.QUERY.getUrl(), name, entryName)
+						+ new Queries("start", start).add("stop", stop).add("ttl", ttl));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
 		HttpResponse<String> response = reductClient.send(builder, HttpResponse.BodyHandlers.ofString());
 		QueryId queryId = JsonUtils.parseObject(response.body(), QueryId.class);
 
-		return new RecordIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().getBaseUrl());
+		return new RecordIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().url());
 	}
 
 	public Iterator<Record> getMetaInfos(String entryName, Long start, Long stop, Long ttl)
@@ -298,14 +297,14 @@ public class Bucket {
 				|| Objects.isNull(ttl)) {
 			throw new ReductException("Validation error");
 		}
-		URI uri = URI.create(reductClient.getServerProperties().getBaseUrl()
-				+ String.format(RecordURL.QUERY.getUrl(), name, entryName)
-				+ new Queries("start", start).add("stop", stop).add("ttl", ttl));
+		URI uri = URI.create(
+				reductClient.getServerProperties().url() + String.format(RecordURL.QUERY.getUrl(), name, entryName)
+						+ new Queries("start", start).add("stop", stop).add("ttl", ttl));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
 		HttpResponse<String> response = reductClient.send(builder, HttpResponse.BodyHandlers.ofString());
 		QueryId queryId = JsonUtils.parseObject(response.body(), QueryId.class);
 
-		return new MetaInfoIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().getBaseUrl());
+		return new MetaInfoIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().url());
 	}
 
 	private boolean isNotValidRecord(Record val) {

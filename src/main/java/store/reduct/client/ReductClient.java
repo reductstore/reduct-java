@@ -8,7 +8,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import store.reduct.client.config.ServerProperties;
@@ -35,14 +34,12 @@ public class ReductClient {
 	private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
 	private final ServerProperties serverProperties;
 	private final HttpClient httpClient;
-	@Getter(AccessLevel.PRIVATE)
-	private final String token;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	public <T> HttpResponse<T> send(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> bodyHandler) {
 		try {
-			if (isNotBlank(token)) {
-				builder.headers("Authorization", "Bearer %s".formatted(token));
+			if (isNotBlank(serverProperties.apiToken())) {
+				builder.headers("Authorization", "Bearer %s".formatted(serverProperties.apiToken()));
 			}
 			HttpResponse<T> httpResponse = httpClient.send(builder.build(), bodyHandler);
 			if (httpResponse.statusCode() == 200) {
@@ -79,7 +76,7 @@ public class ReductClient {
 	public Bucket createBucket(String name, BucketSettings bucketSettings)
 			throws ReductException, IllegalArgumentException {
 		String createBucketPath = BucketURL.CREATE_BUCKET.getUrl().formatted(name);
-		URI uri = URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createBucketPath));
+		URI uri = URI.create("%s/%s".formatted(serverProperties.url(), createBucketPath));
 		HttpRequest.Builder httpRequest = HttpRequest.newBuilder().uri(uri)
 				.POST(HttpRequest.BodyPublishers.ofString(JsonUtils.serialize(bucketSettings)));
 		HttpResponse<Void> httpResponse = send(httpRequest, HttpResponse.BodyHandlers.discarding());// TODO ask about
@@ -119,7 +116,7 @@ public class ReductClient {
 	 *             status code to indicate the failure.
 	 */
 	public ServerInfo info() throws ReductException {
-		URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), ServerURL.SERVER_INFO.getUrl()));
+		URI uri = URI.create("%s/%s".formatted(getServerProperties().url(), ServerURL.SERVER_INFO.getUrl()));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
 		HttpResponse<String> httpResponse = send(builder, HttpResponse.BodyHandlers.ofString());
 		return JsonUtils.parseObject(httpResponse.body(), ServerInfo.class);
@@ -135,7 +132,7 @@ public class ReductClient {
 	 *             status code to indicate the failure.
 	 */
 	public Buckets list() throws ReductException {
-		URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), ServerURL.LIST.getUrl()));
+		URI uri = URI.create("%s/%s".formatted(getServerProperties().url(), ServerURL.LIST.getUrl()));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
 		HttpResponse<String> httpResponse = send(builder, HttpResponse.BodyHandlers.ofString());
 		return JsonUtils.parseObject(httpResponse.body(), Buckets.class);
@@ -151,7 +148,7 @@ public class ReductClient {
 	 *             status code to indicate the failure.
 	 */
 	public Boolean isAlive() throws ReductException {
-		URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), ServerURL.ALIVE.getUrl()));
+		URI uri = URI.create("%s/%s".formatted(getServerProperties().url(), ServerURL.ALIVE.getUrl()));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).method("HEAD",
 				HttpRequest.BodyPublishers.noBody());
 		HttpResponse<String> httpResponse = send(builder, HttpResponse.BodyHandlers.ofString());
@@ -165,7 +162,7 @@ public class ReductClient {
 	 * @return AccessTokens
 	 */
 	public AccessTokens tokens() throws ReductException {
-		URI uri = URI.create("%s/%s".formatted(getServerProperties().getBaseUrl(), TokenURL.GET_TOKENS.getUrl()));
+		URI uri = URI.create("%s/%s".formatted(getServerProperties().url(), TokenURL.GET_TOKENS.getUrl()));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
 		HttpResponse<String> httpResponse = send(builder, HttpResponse.BodyHandlers.ofString());
 		return JsonUtils.parseObject(httpResponse.body(), AccessTokens.class);
@@ -204,7 +201,7 @@ public class ReductClient {
 		String createTokenBody = JsonUtils.serialize(permissions);
 
 		HttpRequest.Builder builder = HttpRequest.newBuilder()
-				.uri(URI.create("%s/%s".formatted(serverProperties.getBaseUrl(), createTokenPath)))
+				.uri(URI.create("%s/%s".formatted(serverProperties.url(), createTokenPath)))
 				.POST(HttpRequest.BodyPublishers.ofString(createTokenBody));
 		HttpResponse<String> response = send(builder, HttpResponse.BodyHandlers.ofString());
 		return JsonUtils.parseObject(response.body(), AccessToken.class);

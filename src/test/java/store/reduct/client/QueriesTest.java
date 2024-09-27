@@ -5,9 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import store.reduct.utils.http.Queries;
 
-public class QueriesTest {
+class QueriesTest {
 	@Test
-	public void test1() {
+	void test1() {
 		// Init
 		Queries q = new Queries("name1", 4L).add("key2", "new").add("ttl", 60);
 		// Act
@@ -16,7 +16,7 @@ public class QueriesTest {
 		assertThat("?name1=4&key2=new&ttl=60").isEqualTo(q.buildQuery());
 	}
 	@Test
-	public void test2() {
+	void test2() {
 		// Init
 		Queries q = new Queries("key1", 4L);
 		// Act

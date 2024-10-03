@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - EntryClient.getRecord(Bucket bucket, Entry<?> body) method to get a record from a
   bucket [PR-27](https://github.com/reductstore/reduct-java/issues/27)
 - Improve ReductClient initialization. [PR-41](https://github.com/reductstore/reduct-java/issues/41)
+- Add exists option to BucketSettings. [PR-42](https://github.com/reductstore/reduct-java/issues/42)
 ### Infrastructure:
 
 - Added GitHub Actions for CI/CD [PR-35](https://github.com/reductstore/reduct-java/pull/35)

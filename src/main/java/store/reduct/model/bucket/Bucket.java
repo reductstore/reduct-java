@@ -105,7 +105,8 @@ public class Bucket {
 		String createBucketPath = BucketURL.GET_BUCKET.getUrl().formatted(name);
 		HttpRequest.Builder builder = HttpRequest.newBuilder()
 				.uri(URI.create("%s/%s".formatted(reductClient.getServerProperties().url(), createBucketPath))).GET();
-		HttpResponse<String> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofString());
+		HttpResponse<String> httpResponse = reductClient.sendAndGetOnlySuccess(builder,
+				HttpResponse.BodyHandlers.ofString());
 		BucketMapper.INSTANCE.copy(this, JsonUtils.parseObject(httpResponse.body(), Bucket.class));
 		return this;
 	}
@@ -134,11 +135,13 @@ public class Bucket {
 		URI uri = URI.create("%s/%s".formatted(reductClient.getServerProperties().url(), createBucketPath));
 		HttpRequest.Builder httpRequest = HttpRequest.newBuilder().uri(uri)
 				.PUT(HttpRequest.BodyPublishers.ofString(JsonUtils.serialize(bucketSettings)));
-		reductClient.send(httpRequest, HttpResponse.BodyHandlers.discarding()); // TODO ask about default settings. The
-																				// answer from DB always is empty for
-																				// success, but settings sets as
-																				// default. This bucket will always have
-																				// settings as null until invoke read.
+		reductClient.sendAndGetOnlySuccess(httpRequest, HttpResponse.BodyHandlers.discarding()); // TODO ask about
+																									// default settings.
+																									// The
+		// answer from DB always is empty for
+		// success, but settings sets as
+		// default. This bucket will always have
+		// settings as null until invoke read.
 	}
 
 	/**
@@ -174,7 +177,7 @@ public class Bucket {
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).header(getContentTypeHeader(), record.getType())
 				.POST(HttpRequest.BodyPublishers.ofByteArray(record.getBody()));
 
-		reductClient.send(builder, HttpResponse.BodyHandlers.ofString()).body();
+		reductClient.sendAndGetOnlySuccess(builder, HttpResponse.BodyHandlers.ofString()).body();
 	}
 
 	/**
@@ -205,7 +208,7 @@ public class Bucket {
 		}
 		if (Objects.nonNull(body)) {
 			builder.POST(HttpRequest.BodyPublishers.ofByteArray(body));
-			reductClient.send(builder, HttpResponse.BodyHandlers.ofString()).body();
+			reductClient.sendAndGetOnlySuccess(builder, HttpResponse.BodyHandlers.ofString()).body();
 		}
 	}
 
@@ -226,7 +229,8 @@ public class Bucket {
 		URI uri = URI.create(reductClient.getServerProperties().url()
 				+ String.format(RecordURL.GET_ENTRY.getUrl(), name, entryName) + timeStampQuery);
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
-		HttpResponse<byte[]> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofByteArray());
+		HttpResponse<byte[]> httpResponse = reductClient.sendAndGetOnlySuccess(builder,
+				HttpResponse.BodyHandlers.ofByteArray());
 		return Record.builder().body(httpResponse.body()).entryName(entryName)
 				.timestamp(httpResponse.headers().firstValue(getXReductTimeHeader()).map(Long::parseLong)
 						.orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
@@ -255,7 +259,8 @@ public class Bucket {
 				+ String.format(RecordURL.GET_ENTRY.getUrl(), name, entryName) + timeStampQuery);
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).method("HEAD",
 				HttpRequest.BodyPublishers.noBody());
-		HttpResponse<byte[]> httpResponse = reductClient.send(builder, HttpResponse.BodyHandlers.ofByteArray());
+		HttpResponse<byte[]> httpResponse = reductClient.sendAndGetOnlySuccess(builder,
+				HttpResponse.BodyHandlers.ofByteArray());
 		return Record.builder().entryName(entryName)
 				.timestamp(httpResponse.headers().firstValue(getXReductTimeHeader()).map(Long::parseLong)
 						.orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
@@ -285,7 +290,8 @@ public class Bucket {
 				reductClient.getServerProperties().url() + String.format(RecordURL.QUERY.getUrl(), name, entryName)
 						+ new Queries("start", start).add("stop", stop).add("ttl", ttl));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
-		HttpResponse<String> response = reductClient.send(builder, HttpResponse.BodyHandlers.ofString());
+		HttpResponse<String> response = reductClient.sendAndGetOnlySuccess(builder,
+				HttpResponse.BodyHandlers.ofString());
 		QueryId queryId = JsonUtils.parseObject(response.body(), QueryId.class);
 
 		return new RecordIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().url());
@@ -301,7 +307,8 @@ public class Bucket {
 				reductClient.getServerProperties().url() + String.format(RecordURL.QUERY.getUrl(), name, entryName)
 						+ new Queries("start", start).add("stop", stop).add("ttl", ttl));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
-		HttpResponse<String> response = reductClient.send(builder, HttpResponse.BodyHandlers.ofString());
+		HttpResponse<String> response = reductClient.sendAndGetOnlySuccess(builder,
+				HttpResponse.BodyHandlers.ofString());
 		QueryId queryId = JsonUtils.parseObject(response.body(), QueryId.class);
 
 		return new MetaInfoIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().url());
@@ -388,7 +395,8 @@ public class Bucket {
 			HeaderInstance instance = headerInstances.poll();
 			ByteBuffer byteBuffer = ByteBuffer.wrap(body);
 			byte[] nextBody = new byte[instance.length];
-			byteBuffer.get(nextBody, instance.getOffset(), instance.getLength());
+			byteBuffer.position(instance.getOffset());
+			byteBuffer.get(nextBody, 0, instance.getLength());
 
 			return Record.builder().body(nextBody).entryName(recordEntryName).timestamp(instance.getTs())
 					.type(instance.getType()).length(instance.getLength()).build();

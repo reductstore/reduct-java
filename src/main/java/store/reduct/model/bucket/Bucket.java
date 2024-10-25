@@ -154,15 +154,16 @@ public class Bucket {
 	public BucketSettings getSettings() {
 		return this.read().getBucketSettings();
 	}
+
 	/**
 	 * Write a record to an entry.
-	 * 
+	 *
+	 * @param entryName
 	 * @param record
-	 * @throws ReductException
 	 * @throws ReductException
 	 * @throws IllegalArgumentException
 	 */
-	public void writeRecord(@NonNull Record record) throws ReductException, IllegalArgumentException {
+	public void writeRecord(String entryName, @NonNull Record record) throws ReductException, IllegalArgumentException {
 		// TODO validation block
 		if (isNotValidRecord(record)) {
 			throw new ReductException("Validation error");
@@ -172,12 +173,11 @@ public class Bucket {
 				: Instant.now().getNano() / 1000;
 
 		URI uri = URI.create(reductClient.getServerProperties().url()
-				+ String.format(RecordURL.WRITE_ENTRY.getUrl(), name, record.getEntryName())
-				+ new Queries(TS, timestamp));
+				+ String.format(RecordURL.WRITE_ENTRY.getUrl(), name, entryName) + new Queries(TS, timestamp));
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).header(getContentTypeHeader(), record.getType())
 				.POST(HttpRequest.BodyPublishers.ofByteArray(record.getBody()));
 
-		reductClient.sendAndGetOnlySuccess(builder, HttpResponse.BodyHandlers.ofString()).body();
+		reductClient.sendAndGetOnlySuccess(builder, HttpResponse.BodyHandlers.ofString());
 	}
 
 	/**
@@ -231,7 +231,7 @@ public class Bucket {
 		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).GET();
 		HttpResponse<byte[]> httpResponse = reductClient.sendAndGetOnlySuccess(builder,
 				HttpResponse.BodyHandlers.ofByteArray());
-		return Record.builder().body(httpResponse.body()).entryName(entryName)
+		return Record.builder().body(httpResponse.body())
 				.timestamp(httpResponse.headers().firstValue(getXReductTimeHeader()).map(Long::parseLong)
 						.orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
 				.type(httpResponse.headers().firstValue(getContentTypeHeader())
@@ -261,7 +261,7 @@ public class Bucket {
 				HttpRequest.BodyPublishers.noBody());
 		HttpResponse<byte[]> httpResponse = reductClient.sendAndGetOnlySuccess(builder,
 				HttpResponse.BodyHandlers.ofByteArray());
-		return Record.builder().entryName(entryName)
+		return Record.builder()
 				.timestamp(httpResponse.headers().firstValue(getXReductTimeHeader()).map(Long::parseLong)
 						.orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
 				.type(httpResponse.headers().firstValue(getContentTypeHeader())
@@ -315,7 +315,7 @@ public class Bucket {
 	}
 
 	private boolean isNotValidRecord(Record val) {
-		return Strings.isBlank(val.getEntryName()) || val.getTimestamp() <= 0 || Objects.isNull(val.getBody());
+		return val.getTimestamp() <= 0 || Objects.isNull(val.getBody());
 	}
 
 	private class RecordIterator implements Iterator<Record> {
@@ -398,8 +398,8 @@ public class Bucket {
 			byteBuffer.position(instance.getOffset());
 			byteBuffer.get(nextBody, 0, instance.getLength());
 
-			return Record.builder().body(nextBody).entryName(recordEntryName).timestamp(instance.getTs())
-					.type(instance.getType()).length(instance.getLength()).build();
+			return Record.builder().body(nextBody).timestamp(instance.getTs()).type(instance.getType())
+					.length(instance.getLength()).build();
 		}
 	}
 

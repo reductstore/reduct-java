@@ -31,8 +31,10 @@ import store.reduct.utils.http.HttpStatus;
 @RequiredArgsConstructor
 @Getter
 public class ReductClient {
+	public static final String BUCKET_NAME_CANNOT_BE_NULL_OR_EMPTY = "Bucket name cannot be null or empty.";
 	private static final String REDUCT_ERROR_HEADER = "x-reduct-error";
 	public static final String S_S = "%s/%s";
+
 	private final ServerProperties serverProperties;
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper = new ObjectMapper();
@@ -228,5 +230,22 @@ public class ReductClient {
 				.POST(HttpRequest.BodyPublishers.ofString(createTokenBody));
 		HttpResponse<String> response = sendAndGetOnlySuccess(builder, HttpResponse.BodyHandlers.ofString());
 		return JsonUtils.parseObject(response.body(), AccessToken.class);
+	}
+
+	/**
+	 * Get Information about a Bucket
+	 * 
+	 * @param bucketName
+	 * @return
+	 */
+	public Bucket getBucket(String bucketName) {
+		if (bucketName == null || bucketName.isBlank()) {
+			throw new IllegalArgumentException(BUCKET_NAME_CANNOT_BE_NULL_OR_EMPTY);
+		}
+		String createBucketPath = BucketURL.GET_BUCKET.getUrl().formatted(bucketName);
+		HttpRequest.Builder builder = HttpRequest.newBuilder()
+				.uri(URI.create(S_S.formatted(this.getServerProperties().url(), createBucketPath))).GET();
+		HttpResponse<String> httpResponse = this.sendAndGetOnlySuccess(builder, HttpResponse.BodyHandlers.ofString());
+		return JsonUtils.parseObject(httpResponse.body(), Bucket.class);
 	}
 }

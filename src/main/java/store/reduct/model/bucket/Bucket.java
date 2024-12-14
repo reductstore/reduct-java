@@ -34,7 +34,6 @@ import store.reduct.utils.http.Queries;
 public class Bucket {
 
 	private static final String TS = "ts";
-	public static final String BUCKET_NAME_CANNOT_BE_NULL_OR_EMPTY = "Bucket name cannot be null or empty.";
 	public static final String X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT = "Received from server x-reduct-time is not such Long format, or empty.";
 	public static final String CONTENT_TYPE_IS_NOT_SET_IN_THE_RECORD = "The Content-Type is not set in the record.";
 	public static final String CONTENT_LENGTH_IS_NOT_SET_IN_THE_RECORD = "The Content-Length is not set in the record.";
@@ -99,15 +98,7 @@ public class Bucket {
 	 * @return Returns this Bucket object with updated fields
 	 */
 	public Bucket read() throws ReductException, IllegalArgumentException {
-		if (name == null || name.isBlank()) {
-			throw new IllegalArgumentException(BUCKET_NAME_CANNOT_BE_NULL_OR_EMPTY);
-		}
-		String createBucketPath = BucketURL.GET_BUCKET.getUrl().formatted(name);
-		HttpRequest.Builder builder = HttpRequest.newBuilder()
-				.uri(URI.create("%s/%s".formatted(reductClient.getServerProperties().url(), createBucketPath))).GET();
-		HttpResponse<String> httpResponse = reductClient.sendAndGetOnlySuccess(builder,
-				HttpResponse.BodyHandlers.ofString());
-		BucketMapper.INSTANCE.copy(this, JsonUtils.parseObject(httpResponse.body(), Bucket.class));
+		BucketMapper.INSTANCE.copy(this, reductClient.getBucket(name));
 		return this;
 	}
 

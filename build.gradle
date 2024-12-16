@@ -35,12 +35,12 @@ spotless {
 
 dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
-    implementation 'org.projectlombok:lombok:1.18.34'
+    implementation 'org.projectlombok:lombok:1.18.36'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
     implementation 'org.mapstruct:mapstruct:1.6.2'
 
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'

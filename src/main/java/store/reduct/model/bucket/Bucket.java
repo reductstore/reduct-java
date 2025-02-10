@@ -18,6 +18,7 @@ import store.reduct.client.ReductClient;
 import store.reduct.common.BucketURL;
 import store.reduct.common.RecordURL;
 import store.reduct.common.exception.ReductException;
+import store.reduct.model.QueryOptions;
 import store.reduct.model.mapper.BucketMapper;
 import store.reduct.model.record.QueryId;
 import store.reduct.model.record.Record;
@@ -286,6 +287,18 @@ public class Bucket {
 		QueryId queryId = JsonUtils.parseObject(response.body(), QueryId.class);
 
 		return new RecordIterator(name, entryName, queryId.getId(), reductClient.getServerProperties().url());
+	}
+
+	/**
+	 * Query records for a time interval
+	 *
+	 * @param entryName
+	 * @param options
+	 * @return
+	 */
+	public Iterator<Record> query(String entryName, QueryOptions options)
+			throws ReductException, IllegalArgumentException {
+		return query(entryName, options.getStart(), options.getStop(), options.getTtl());
 	}
 
 	public Iterator<Record> getMetaInfos(String entryName, Long start, Long stop, Long ttl)

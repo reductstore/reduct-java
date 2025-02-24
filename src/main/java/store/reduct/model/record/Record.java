@@ -12,6 +12,6 @@ import lombok.Setter;
 public class Record {
 	private Long timestamp;
 	private byte[] body;
-	private String type;
+	private String contentType;
 	private Integer length;
 }

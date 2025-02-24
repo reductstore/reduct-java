@@ -43,7 +43,7 @@ class BucketTest {
 
 		Bucket bucket = new Bucket(expectedBucketName, client);
 
-		Record record = Record.builder().body(expectedBody).type(expectedType).timestamp(timestamp).build();
+		Record record = Record.builder().body(expectedBody).contentType(expectedType).timestamp(timestamp).build();
 
 		Mockito.when(client.getServerProperties()).thenReturn(serverProperties);
 

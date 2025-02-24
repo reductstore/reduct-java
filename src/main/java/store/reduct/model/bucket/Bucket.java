@@ -165,7 +165,8 @@ public class Bucket {
 
 		URI uri = URI.create(reductClient.getServerProperties().url()
 				+ String.format(RecordURL.WRITE_ENTRY.getUrl(), name, entryName) + new Queries(TS, timestamp));
-		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri).header(getContentTypeHeader(), record.getType())
+		HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri)
+				.header(getContentTypeHeader(), record.getContentType())
 				.POST(HttpRequest.BodyPublishers.ofByteArray(record.getBody()));
 
 		reductClient.sendAndGetOnlySuccess(builder, HttpResponse.BodyHandlers.ofString());
@@ -195,7 +196,7 @@ public class Bucket {
 			byte[] byteBodyArray = record.getBody();
 			body = ArrayUtils.addAll(body, byteBodyArray);
 			builder.header(getXReductTimeWithNumberHeader(record.getTimestamp()),
-					byteBodyArray.length + "," + record.getType());
+					byteBodyArray.length + "," + record.getContentType());
 		}
 		if (Objects.nonNull(body)) {
 			builder.POST(HttpRequest.BodyPublishers.ofByteArray(body));
@@ -225,7 +226,7 @@ public class Bucket {
 		return Record.builder().body(httpResponse.body())
 				.timestamp(httpResponse.headers().firstValue(getXReductTimeHeader()).map(Long::parseLong)
 						.orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
-				.type(httpResponse.headers().firstValue(getContentTypeHeader())
+				.contentType(httpResponse.headers().firstValue(getContentTypeHeader())
 						.orElseThrow(() -> new ReductException(CONTENT_TYPE_IS_NOT_SET_IN_THE_RECORD)))
 				.length(httpResponse.headers().firstValue(getContentLengthHeader()).map(Integer::parseInt)
 						.orElseThrow(() -> new ReductException(CONTENT_LENGTH_IS_NOT_SET_IN_THE_RECORD)))
@@ -255,7 +256,7 @@ public class Bucket {
 		return Record.builder()
 				.timestamp(httpResponse.headers().firstValue(getXReductTimeHeader()).map(Long::parseLong)
 						.orElseThrow(() -> new ReductException(X_REDUCT_TIME_IS_NOT_SUCH_LONG_FORMAT)))
-				.type(httpResponse.headers().firstValue(getContentTypeHeader())
+				.contentType(httpResponse.headers().firstValue(getContentTypeHeader())
 						.orElseThrow(() -> new ReductException(CONTENT_TYPE_IS_NOT_SET_IN_THE_RECORD)))
 				.length(httpResponse.headers().firstValue(getContentLengthHeader()).map(Integer::parseInt)
 						.orElseThrow(() -> new ReductException(CONTENT_LENGTH_IS_NOT_SET_IN_THE_RECORD)))
@@ -389,7 +390,7 @@ public class Bucket {
 			byteBuffer.position(instance.getOffset());
 			byteBuffer.get(nextBody, 0, instance.getLength());
 
-			return Record.builder().body(nextBody).timestamp(instance.getTs()).type(instance.getType())
+			return Record.builder().body(nextBody).timestamp(instance.getTs()).contentType(instance.getType())
 					.length(instance.getLength()).build();
 		}
 	}

@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add exists option to BucketSettings. [PR-42](https://github.com/reductstore/reduct-java/issues/42)
 - Bucket.writeRecord receives entry name and bucket. [PR-43](https://github.com/reductstore/reduct-java/issues/43)
 - Add getBucket method to ReductClient. [PR-44](https://github.com/reductstore/reduct-java/issues/44)
+- Change field name 'type' to 'contentType' in Record class. [PR-46](https://github.com/reductstore/reduct-java/issues/46)
 ### Infrastructure:
 
 - Added GitHub Actions for CI/CD [PR-35](https://github.com/reductstore/reduct-java/pull/35)
